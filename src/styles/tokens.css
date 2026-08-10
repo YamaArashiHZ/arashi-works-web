@@ -1,0 +1,10 @@
+:root {
+    --font-body:
+        "Microsoft YaHei",
+        "PingFang SC",
+        "Noto Sans CJK SC",
+        system-ui,
+        sans-serif;
+    --line-height-body: 1.7;
+    --space-page: 1.5rem;
+}

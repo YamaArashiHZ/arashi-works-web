@@ -1,0 +1,12 @@
+html {
+    font-family: var(--font-body);
+    line-height: var(--line-height-body);
+}
+
+body {
+    min-height: 100vh;
+}
+
+main {
+    padding: var(--space-page);
+}

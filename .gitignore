@@ -1,0 +1,27 @@
+# ===== Opencode配置 =====
+.opencode/
+AGENTS.md
+opencode.json
+
+# ===== 临时文件 =====
+.temp/
+
+# ===== Astro / Node.js =====
+node_modules/
+dist/
+.astro/
+
+# ===== 日志 =====
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== 本地环境变量 =====
+.env
+.env.*
+!.env.example
+
+# ===== IDE =====
+.idea/
+.DS_Store
