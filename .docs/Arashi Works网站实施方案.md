@@ -1,5 +1,6 @@
 # Arashi Works 网站实施方案
 
+
 > 中文品牌：山嵐异造坊
 > 仓库名称：arashi-works-web
 > 文档状态：实施基线，已完成实施前审查
@@ -502,10 +503,10 @@ src/content/works/
 | `summary` | string | 是 | 卡片和 SEO 使用的简短介绍 |
 | `type` | enum | 是 | `software`、`game` 或 `experiment` |
 | `status` | enum | 是 | 作品当前状态 |
-| `publishedAt` | date | 否 | 首次公开日期 |
-| `updatedAt` | date | 是 | 最近有效更新日期 |
+| `publishedAt` | datetime | 条件必填 | 首次公开日期 |
+| `updatedAt` | datetime | 否 | 最近有效更新日期 |
 | `tags` | string[] | 是 | 用于筛选和关联 |
-| `platforms` | string[] | 是 | 支持的平台 |
+| `platforms` | enum[] | 是 | 支持的系统级平台：`web`、`windows`、`linux`、`android`；具体架构由发布清单表达 |
 | `featured` | boolean | 否 | 是否允许进入首页精选区 |
 | `draft` | boolean | 是 | 是否禁止生产构建公开 |
 | `cover` | image reference | 否 | 作品封面；非草稿作品必填 |
@@ -528,13 +529,13 @@ title: PixBox
 summary: 用于整理和浏览图像素材的小型桌面工具。
 type: software
 status: maintained
-publishedAt: 2026-01-10
-updatedAt: 2026-08-10
+publishedAt: "2026-01-10T12:00:00+08:00"
+updatedAt: "2026-08-10T18:30:00+08:00"
 tags:
   - python
   - desktop
 platforms:
-  - windows-x64
+  - windows
 featured: true
 draft: false
 cover: ./assets/pixbox-cover.webp
@@ -591,8 +592,8 @@ src/content/notes/
 |---|---|---:|---|
 | `title` | string | 是 | 文章标题 |
 | `summary` | string | 是 | 列表和 SEO 摘要 |
-| `publishedAt` | date | 是 | 首次发布日期 |
-| `updatedAt` | date | 否 | 实质修改日期 |
+| `publishedAt` | datetime | 条件必填 | 首次发布日期 |
+| `updatedAt` | datetime | 否 | 实质修改日期 |
 | `category` | enum | 是 | 文章主要栏目 |
 | `tags` | string[] | 是 | 文章主题标签 |
 | `work` | string | 否 | 关联的作品 ID |
@@ -616,7 +617,7 @@ misc
 ---
 title: PixBox 缩略图缓存的设计过程
 summary: 记录桌面图像工具中缩略图缓存的实现与取舍。
-publishedAt: 2026-08-10
+publishedAt: "2026-08-10T12:00:00+08:00"
 category: devlog
 tags:
   - python
@@ -639,11 +640,14 @@ featured: false
 规则如下：
 
 - 草稿可以缺少正式封面和其他非关键展示资料。
-- 非草稿手记必须具有有效的 `publishedAt`。
+- 非草稿作品和手记必须具有有效的 `publishedAt`。
 - 未来日期内容默认不公开，除非以后明确增加定时发布流程。
 - `updatedAt` 只在内容发生实质变化时更新。
 - 修正错别字或格式通常不需要改变 `updatedAt`。
-- 日期统一使用 ISO 8601 格式，例如 `2026-08-10`。
+- `publishedAt` 和 `updatedAt` 统一使用带明确时区的 ISO 8601 日期时间，例如 `"2026-08-11T01:00:00+08:00"`。
+- 不使用缺少时区的本地日期时间；UTC 可以使用 `Z`，例如 `"2026-08-10T17:00:00Z"`。
+- 存储精度统一到秒；页面可按场景只显示日期或显示到分钟。
+- Frontmatter 中的日期时间值统一写为带引号的 YAML 字符串，避免 YAML 解析器提前转换类型。
 
 ### 8.7 标签规范
 

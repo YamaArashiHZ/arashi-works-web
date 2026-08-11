@@ -1,6 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { site } from '../data/site';
+import { getPublishedWorks,
+	getPublishedNotes,
+	getPublishedNotesByWork,
+	getPublishedContentByTag,
+	getPublishedNotesByCategory,
+} from '../lib/content';
+import { tags } from '../data/tags';
+
+const publishedWorks = await getPublishedWorks();
+const publishedNotes = await getPublishedNotes();
+const schematestNotes = await getPublishedNotesByWork('schema-test');
+const astroTaggedContent = await getPublishedContentByTag('astro');
+const technicalNotes = await getPublishedNotesByCategory('technical');
 ---
 
 <BaseLayout
@@ -9,4 +22,11 @@ import { site } from '../data/site';
 >
 	<h1>{site.name}</h1>
 	<p>{site.nameZh}</p>
+	<p>公开作品：{publishedWorks.length}</p>
+	<p>公开手记：{publishedNotes.length}</p>
+	<p>Schema Test关联手记：{schematestNotes.length}</p>
+	<p>Astro相关作品：{astroTaggedContent.works.length}</p>
+	<p>Astro相关手记：{astroTaggedContent.notes.length}</p>
+	<p>已登记标签：{Object.keys(tags).length}</p>
+	<p>技术笔记：{technicalNotes.length}</p>
 </BaseLayout>
