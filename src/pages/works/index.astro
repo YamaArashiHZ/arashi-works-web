@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPublishedWorks } from '../../lib/content';
+
+const works = await getPublishedWorks();
+---
+
+<BaseLayout
+    title="作品 | Arashi Works"
+    description="浏览 Arashi Works 的软件、游戏与实验项目。"
+>
+    <h1>作品</h1>
+    <p>公开作品：{works.length}</p>
+</BaseLayout>
