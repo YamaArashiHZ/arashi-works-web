@@ -6,4 +6,17 @@ test('首页显示正确的品牌信息', async ({ page }) => {
     await expect(
         page.getByRole('heading', { level: 1 })
     ).toHaveText('Arashi Works');
+
+    const mainNavigation = page.getByRole('navigation', {
+        name: '主导航',
+    });
+
+    await expect(mainNavigation).toBeVisible();
+
+    const homeLink = mainNavigation.getByRole('link', {
+        name: '首页',
+    });
+
+    await expect(homeLink).toBeVisible();
+    await expect(homeLink).toHaveAttribute('aria-current', 'page');
 });

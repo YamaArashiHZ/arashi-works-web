@@ -2,6 +2,7 @@
 import '../styles/reset.css';
 import '../styles/tokens.css';
 import '../styles/global.css';
+import SiteHeader from '../components/SiteHeader.astro';
 
 interface Props {
     title: string;
@@ -20,7 +21,9 @@ const { title, description } = Astro.props;
         <title>{title}</title>
     </head>
     <body>
-        <main>
+        <a class="skip-link" href="#main-content">跳至正文</a>
+        <SiteHeader />
+        <main id="main-content" tabindex="-1">
             <slot />
         </main>
     </body>
