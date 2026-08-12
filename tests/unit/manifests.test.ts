@@ -38,7 +38,7 @@ test('资产 ID 重复时拒绝发布清单', () => {
                 ...firstAsset,
                 architecture: 'arm64',
                 filename: 'fixture-app-1.2.3-windows-arm64.zip',
-                url: 'https://example.com/downloads/fixture-app-1.2.3-windows-arm64.zip',
+                url: 'https://example.com/downloads/fixture-app/fixture-app-1.2.3-windows-arm64.zip',
             },
         ],
     };
@@ -57,7 +57,7 @@ test('资产文件名重复时拒绝发布清单', () => {
                 ...firstAsset,
                 id: 'windows-arm64-portable',
                 architecture: 'arm64',
-                url: 'https://example.com/downloads/fixture-app-arm64.zip',
+                url: 'https://example.com/downloads/fixture-app/fixture-app-arm64.zip',
             },
         ],
     };
@@ -85,6 +85,36 @@ test('资产 URL 重复时拒绝发布清单', () => {
         .toThrow('资产 url 必须唯一');
 });
 
+test('资产 URL 的作品目录不匹配时拒绝发布清单', () => {
+    const invalidManifest = {
+        ...validManifest,
+        assets: [
+            {
+                ...validManifest.assets[0],
+                url: 'https://example.com/downloads/other-app/fixture-app-1.2.3-windows-x64.zip',
+            },
+        ],
+    };
+
+    expect(() => parseReleaseManifest(invalidManifest, 'fixture-app'))
+        .toThrow('资产 URL 必须位于当前作品的下载目录');
+});
+
+test('资产 URL 文件名不匹配时拒绝发布清单', () => {
+    const invalidManifest = {
+        ...validManifest,
+        assets: [
+            {
+                ...validManifest.assets[0],
+                url: 'https://example.com/downloads/fixture-app/wrong-name.zip',
+            },
+        ],
+    };
+
+    expect(() => parseReleaseManifest(invalidManifest, 'fixture-app'))
+        .toThrow('资产 URL 文件名必须与 filename 一致');
+});
+
 test('productId 与当前作品不一致时拒绝发布清单', () => {
     const invalidManifest = {
         ...validManifest,
@@ -98,10 +128,19 @@ test('productId 与当前作品不一致时拒绝发布清单', () => {
 test('拒绝非 HTTPS 发布清单地址', async () => {
     await expect(
         fetchReleaseManifest(
-            'http://example.com/stable.json',
+            'http://example.com/downloads/fixture-app/stable.json',
             'fixture-app',
         ),
     ).rejects.toThrow('发布清单 URL 必须使用 HTTPS');
+});
+
+test('发布清单路径不匹配时拒绝', async () => {
+    await expect(
+        fetchReleaseManifest(
+            'https://example.com/downloads/other-app/stable.json',
+            'fixture-app',
+        ),
+    ).rejects.toThrow('发布清单 URL 必须位于当前作品的下载目录');
 });
 
 test('拒绝非成功 HTTP 状态', async () => {
@@ -110,7 +149,7 @@ test('拒绝非成功 HTTP 状态', async () => {
 
     await expect(
         fetchReleaseManifest(
-            'https://example.com/stable.json',
+            'https://example.com/downloads/fixture-app/stable.json',
             'fixture-app',
             fetchImpl,
         ),
@@ -128,7 +167,7 @@ test('拒绝声明大小超过上限的响应', async () => {
 
     await expect(
         fetchReleaseManifest(
-            'https://example.com/stable.json',
+            'https://example.com/downloads/fixture-app/stable.json',
             'fixture-app',
             fetchImpl,
         ),
@@ -142,11 +181,36 @@ test('拒绝实际大小超过上限的响应', async () => {
 
     await expect(
         fetchReleaseManifest(
-            'https://example.com/stable.json',
+            'https://example.com/downloads/fixture-app/stable.json',
             'fixture-app',
             fetchImpl,
         ),
     ).rejects.toThrow('发布清单响应超过 256 KiB');
+});
+
+test('主下载资产与发布清单不同源时拒绝', async () => {
+    const invalidManifest = {
+        ...validManifest,
+        assets: [
+            {
+                ...validManifest.assets[0],
+                url: 'https://evil.example/downloads/fixture-app/fixture-app-1.2.3-windows-x64.zip',
+            },
+        ],
+    };
+
+    const fetchImpl: typeof globalThis.fetch = async () =>
+        new Response(JSON.stringify(invalidManifest), {
+            status: 200,
+        });
+
+    await expect(
+        fetchReleaseManifest(
+            'https://example.com/downloads/fixture-app/stable.json',
+            'fixture-app',
+            fetchImpl,
+        ),
+    ).rejects.toThrow('资产 URL 必须与发布清单同源');
 });
 
 test('获取并解析有效的远程发布清单', async () => {
@@ -159,7 +223,7 @@ test('获取并解析有效的远程发布清单', async () => {
         });
 
     const manifest = await fetchReleaseManifest(
-        'https://example.com/stable.json',
+        'https://example.com/downloads/fixture-app/stable.json',
         'fixture-app',
         fetchImpl,
     );
@@ -174,7 +238,7 @@ test('拒绝无效 JSON 响应', async () => {
 
     await expect(
         fetchReleaseManifest(
-            'https://example.com/stable.json',
+            'https://example.com/downloads/fixture-app/stable.json',
             'fixture-app',
             fetchImpl,
         ),
@@ -187,7 +251,7 @@ test('拒绝空发布清单响应体', async () => {
 
     await expect(
         fetchReleaseManifest(
-            'https://example.com/stable.json',
+            'https://example.com/downloads/fixture-app/stable.json',
             'fixture-app',
             fetchImpl,
         ),
@@ -211,7 +275,7 @@ test('按作品 ID 聚合远程发布清单', async () => {
         [
             {
                 productId: 'fixture-app',
-                url: 'https://example.com/stable.json',
+                url: 'https://example.com/downloads/fixture-app/stable.json',
             },
         ],
         fetchImpl,

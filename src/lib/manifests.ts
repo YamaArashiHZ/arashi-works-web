@@ -71,6 +71,26 @@ export function parseReleaseManifest(
             throw new Error('productId 必须与当前作品一致');
         }
 
+        const downloadDirectory = `/downloads/${encodeURIComponent(expectedProductId)}/`;
+
+        const hasInvalidAssetUrl = input.assets.some((asset) => {
+            const pathname = new URL(asset.url).pathname;
+            return !pathname.startsWith(downloadDirectory);
+        });
+        if (hasInvalidAssetUrl) {
+            throw new Error('资产 URL 必须位于当前作品的下载目录');
+        }
+
+        const hasMismatchedFilename = input.assets.some((asset) => {
+            const pathname = new URL(asset.url).pathname;
+            const expectedPath = `${downloadDirectory}${encodeURIComponent(asset.filename)}`;
+
+            return pathname !== expectedPath;
+        });
+        if (hasMismatchedFilename) {
+            throw new Error('资产 URL 文件名必须与 filename 一致');
+        }
+
         return input;
     }
 
@@ -91,6 +111,12 @@ export async function fetchReleaseManifest(
 
     if (manifestUrl.protocol !== 'https:') {
         throw new Error('发布清单 URL 必须使用 HTTPS');
+    }
+
+    const expectedManifestPath = `/downloads/${encodeURIComponent(expectedProductId)}/stable.json`;
+
+    if (manifestUrl.pathname !== expectedManifestPath) {
+        throw new Error('发布清单 URL 必须位于当前作品的下载目录');
     }
 
     const response = await fetchImpl(manifestUrl, {
@@ -162,7 +188,17 @@ export async function fetchReleaseManifest(
         throw new Error('发布清单不是有效 JSON', { cause: error });
     }
 
-    return parseReleaseManifest(input, expectedProductId);
+    const manifest = parseReleaseManifest(input, expectedProductId);
+
+    const hasCrossOriginAsset = manifest.assets.some(
+        (asset) => new URL(asset.url).origin !== manifestUrl.origin,
+    );
+
+    if (hasCrossOriginAsset) {
+        throw new Error('资产 URL 必须与发布清单同源');
+    }
+
+    return manifest;
 }
 
 export async function fetchReleaseManifests(

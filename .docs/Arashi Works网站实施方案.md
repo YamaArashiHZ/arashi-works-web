@@ -43,7 +43,7 @@ Arashi Works 是山嵐的个人创作网站，用于集中展示和记录：
 | 评论与阅读量 | Waline |
 | 网站与软件仓库 | 分仓维护 |
 | 目标用户 | 主要面向中国大陆用户 |
-| 未来部署方向 | 腾讯云 COS、CDN 和轻量应用服务器 |
+| 未来部署方向 | 腾讯云 COS、EdgeOne 和轻量应用服务器 |
 | 当前阶段 | 阶段B：本地基础工程，不部署 |
 
 ## 3. 设计主题
@@ -539,7 +539,7 @@ platforms:
 featured: true
 draft: false
 cover: ./assets/pixbox-cover.webp
-releaseManifestUrl: https://dl.example.com/software/pixbox/stable.json
+releaseManifestUrl: https://example.com/downloads/pixbox/stable.json
 ---
 ```
 
@@ -758,13 +758,13 @@ v1.2.3
 每个支持公开下载或自动更新的作品拥有固定清单地址：
 
 ```text
-https://dl.example.com/software/[product-id]/stable.json
+https://example.com/downloads/[product-id]/stable.json
 ```
 
 例如：
 
 ```text
-https://dl.example.com/software/pixbox/stable.json
+https://example.com/downloads/pixbox/stable.json
 ```
 
 客户端始终请求固定地址，无需预先知道最新版本。
@@ -776,14 +776,14 @@ https://dl.example.com/software/pixbox/stable.json
 下载资产必须使用包含版本号的不可变地址：
 
 ```text
-https://dl.example.com/software/[product-id]/[version]/[filename]
+https://example.com/downloads/[product-id]/[filename]
 ```
 
 例如：
 
 ```text
-https://dl.example.com/software/pixbox/1.2.3/pixbox-1.2.3-windows-x64-setup.exe
-https://dl.example.com/software/pixbox/1.2.3/pixbox-1.2.3-windows-x64-portable.zip
+https://example.com/downloads/pixbox/pixbox-1.2.3-windows-x64-setup.exe
+https://example.com/downloads/pixbox/pixbox-1.2.3-windows-x64-portable.zip
 ```
 
 发布后不得覆盖同一版本路径中的文件。
@@ -812,7 +812,7 @@ https://dl.example.com/software/pixbox/1.2.3/pixbox-1.2.3-windows-x64-portable.z
       "architecture": "x64",
       "packageType": "installer",
       "filename": "pixbox-1.2.3-windows-x64-setup.exe",
-      "url": "https://dl.example.com/software/pixbox/1.2.3/pixbox-1.2.3-windows-x64-setup.exe",
+      "url": "https://example.com/downloads/pixbox/pixbox-1.2.3-windows-x64-setup.exe",
       "fallbackUrl": "https://github.com/example/pixbox/releases/download/v1.2.3/pixbox-1.2.3-windows-x64-setup.exe",
       "size": 52428800,
       "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
@@ -844,7 +844,7 @@ https://dl.example.com/software/pixbox/1.2.3/pixbox-1.2.3-windows-x64-portable.z
 | `architecture` | enum | 是 | `x64`、`arm64` 或实际支持的架构 |
 | `packageType` | enum | 是 | `installer`、`portable` 或 `archive` |
 | `filename` | string | 是 | 用户下载时看到的文件名 |
-| `url` | HTTPS URL | 是 | 对象存储和 CDN 主下载地址 |
+| `url` | HTTPS URL | 是 | 对象存储和 EdgeOne 主下载地址 |
 | `fallbackUrl` | HTTPS URL | 否 | GitHub Release 等备用地址 |
 | `size` | integer | 是 | 文件字节数 |
 | `sha256` | string | 是 | 64 位小写十六进制 SHA256 |
@@ -913,7 +913,7 @@ https://dl.example.com/software/pixbox/1.2.3/pixbox-1.2.3-windows-x64-portable.z
 6. 将校验后的版本数据用于生成静态作品页面。
 7. 将最终页面和其他静态资源一起部署。
 
-浏览器默认不直接请求远程清单。访客看到的是构建时生成的静态版本信息，因此页面加载不依赖下载域名的实时状态或客户端 JavaScript。
+浏览器默认不直接请求远程清单。访客看到的是构建时生成的静态版本信息，因此页面加载不依赖下载域名及其源站的实时状态或客户端 JavaScript。
 
 首期远程发布清单请求超时为 10 秒，响应体上限为 256 KiB（262,144 字节）。超过任一限制均视为清单拉取失败，并使包含该公开作品的生产构建失败。
 
@@ -957,7 +957,7 @@ Cache-Control: public, max-age=31536000, immutable
 Cache-Control: public, max-age=300
 ```
 
-发布后可以按需刷新 `stable.json` 的 CDN 缓存，但不应刷新不可变版本资产。
+发布后可以按需刷新 `stable.json` 的 EdgeOne 缓存，但不应刷新不可变版本资产。
 
 ### 9.11 客户端更新检查
 
@@ -2011,11 +2011,11 @@ CORS、`Origin`、`Referer`、CSRF 防护和验证码可以提高滥用成本，
 ```text
 GitHub 网站仓库
     ↓ CI/CD
-网站 COS → 网站 CDN → www.example.com
-
+网站 COS ─┐
+          ├→ EdgeOne → example.com
+下载 COS ─┘              └─ /downloads/* 按规则回源到下载 COS
+    ↑ 发布 CI
 各作品仓库
-    ↓ 发布 CI
-下载 COS → 下载 CDN → dl.example.com
 
 轻量应用服务器
     └── Waline + SQLite → comments.example.com
@@ -2026,26 +2026,29 @@ GitHub 网站仓库
 
 正式域名确定后统一替换 `example.com`。未来聊天网关与 Waline 逻辑隔离，不能因为节省配置而共用同一进程、密钥或数据库。
 
+默认源站组：网站 COS
+/downloads/*：通过规则引擎“修改源站”切换到下载 COS
+
 ### 15.2 资源边界
 
 | 资源 | 用途 | 访问权限 |
 |---|---|---|
-| 网站 COS 桶 | HTML、CSS、JavaScript、图片、字体和搜索索引 | 通过 CDN 公开读取 |
-| 下载 COS 桶 | 发布清单和版本化安装包、游戏构建、ZIP | 通过 CDN 公开读取 |
+| 网站 COS 桶 | HTML、CSS、JavaScript、图片、字体和搜索索引 | 通过 EdgeOne 公开读取 |
+| 下载 COS 桶 | 发布清单和版本化安装包、游戏构建、ZIP | 通过 EdgeOne 公开读取 |
 | 备份 COS 桶 | Waline 数据库及必要服务备份 | 私有 |
 | 轻量应用服务器 | Waline、SQLite 和 HTTPS 反向代理 | 仅必要服务域名公开 |
-| CAM 子账号或角色 | CI 上传、备份和 CDN 刷新 | 按仓库和对象前缀最小授权 |
+| CAM 子账号或角色 | CI 上传、备份和 EdgeOne 刷新 | 按仓库和对象前缀最小授权 |
 
 未来聊天服务的部署形态、规格和数据存储在启用前单独决策，不在首期预购资源。
 
-### 15.3 COS 与 CDN 规则
+### 15.3 COS 与 EdgeOne 规则
 
 - 禁止公共目录列表。
 - 网站桶配置静态站点与 404 页面。
 - 下载桶支持 Range 请求和断点续传。
 - 对象使用正确 `Content-Type`；下载资产设置合理的 `Content-Disposition`。
 - 版本化资产路径不可变，发布后不覆盖。
-- 网站与下载域名分别配置缓存规则。
+- 同一站点按内容路径配置缓存规则；`/downloads/*` 另行区分发布清单与版本化资产。
 - 全站强制 HTTPS，根域与 `www` 使用单一规范地址。
 - 开启流量、带宽、请求量和费用告警。
 
@@ -2061,7 +2064,7 @@ GitHub 网站仓库
 
 ### 15.4 备案前置条件
 
-使用中国大陆 COS CDN 和大陆服务器域名之前，先确认 ICP 备案及腾讯云接入备案状态。正式上线后按所在地要求办理公安联网备案，并在页脚展示有效链接和备案号。
+使用 EdgeOne 中国大陆可用区、腾讯云 COS 和大陆服务器域名之前，先确认 ICP 备案及腾讯云接入备案状态。正式上线后按所在地要求办理公安联网备案，并在页脚展示有效链接和备案号。
 
 备案未完成时只进行本地开发或明确的临时预览，不把临时海外部署视为中国大陆正式可用性方案。
 
@@ -2089,7 +2092,7 @@ Pagefind 索引
 链接检查与 Playwright 冒烟测试
 ```
 
-Pull Request 不接触生产 COS、CDN 或服务器凭证。
+Pull Request 不接触生产 COS、EdgeOne 或服务器凭证。
 
 ### 16.2 网站部署
 
@@ -2106,7 +2109,7 @@ Pull Request 不接触生产 COS、CDN 或服务器凭证。
 ### 16.3 凭证边界
 
 - 不使用腾讯云主账号永久密钥。
-- 网站仓库凭证只允许写网站桶和刷新网站 CDN。
+- 网站仓库凭证只允许写网站桶和刷新网站 EdgeOne。
 - 各作品仓库凭证只允许写对应下载目录和发布清单。
 - 备份身份只允许写私有备份桶。
 - PR 和不可信分支不能读取生产 Secrets。
@@ -2114,7 +2117,7 @@ Pull Request 不接触生产 COS、CDN 或服务器凭证。
 
 ## 17. 安全、隐私与合规
 
-### 17.1 静态网站与 CDN
+### 17.1 静态网站与 EdgeOne
 
 - 全站 HTTPS。
 - 确认全部子域支持 HTTPS 后再评估 HSTS `includeSubDomains`。
@@ -2172,7 +2175,7 @@ Pull Request 不接触生产 COS、CDN 或服务器凭证。
 - 轻量服务器 CPU、内存、磁盘和网络。
 - Waline 容器重启和错误日志。
 - COS 存储量和请求量。
-- CDN 流量、带宽、状态码和命中率。
+- EdgeOne 流量、带宽、状态码和命中率。
 - 腾讯云余额与按量费用。
 - GitHub Actions 构建和部署失败。
 - 未来聊天请求量、Token、错误率、拒绝率和预算消耗。
@@ -2194,7 +2197,7 @@ Waline 备份建议保留最近 7 个每日、4 个每周和 6 个每月版本�
 
 ### 18.4 成本边界
 
-当前低流量目标仍按每月约 20 至 50 元规划，不含域名续费和未来 AI 聊天费用。购买前必须复核腾讯云当期价格、续费价格、CDN、COS、HTTPS 请求和出网计费。
+当前低流量目标仍按每月约 20 至 50 元规划，不含域名续费和未来 AI 聊天费用。购买前必须复核腾讯云当期价格、续费价格、EdgeOne、COS、HTTPS 请求和出网计费。
 
 未来 DeepSeek 聊天预算独立计算，不与网站基础费用混合。聊天功能必须具有硬预算熔断，不能只依赖余额提醒。
 
@@ -2241,7 +2244,7 @@ Waline 备份建议保留最近 7 个每日、4 个每周和 6 个每月版本�
 - 失败部署保留上一版网站。
 - 并发部署不会让旧提交覆盖新提交。
 - 网站、评论、清单和下载均使用 HTTPS。
-- COS、CDN 和 CAM 符合最小权限与缓存规则。
+- COS、EdgeOne 和 CAM 符合最小权限与缓存规则。
 - Waline 备份可恢复到测试实例。
 
 未来聊天启用时另增网关专项验收，不把首期“筹备中”卡片视为聊天功能验收完成。
@@ -2275,7 +2278,7 @@ Waline 备份建议保留最近 7 个每日、4 个每周和 6 个每月版本�
 1. 查询并处理备案前置条件。
 2. 部署并加固 Waline，建立备份恢复流程。
 3. 为首个作品接通发布清单和版本化下载。
-4. 建立网站 CI/CD、COS、CDN、安全头和监控。
+4. 建立网站 CI/CD、COS、EdgeOne、安全头和监控。
 5. 完成验收后正式上线并处理后续合规事项。
 
 ### 20.5 阶段 E：未来聊天专项

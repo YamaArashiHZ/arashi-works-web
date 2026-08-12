@@ -12,7 +12,7 @@
             "architecture": "x64",
             "packageType": "portable",
             "filename": "fixture-app-1.2.3-windows-x64.zip",
-            "url": "https://example.com/downloads/fixture-app-1.2.3-windows-x64.zip",
+            "url": "https://example.com/downloads/fixture-app/fixture-app-1.2.3-windows-x64.zip",
             "size": 1024,
             "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         }
