@@ -11,6 +11,10 @@ export const tags = {
     'schema-test': {
         name: 'Schema Test',
     },
+    'tools': {
+        name: '工具',
+        description: '日常便利软件、程序与相关内容',
+    },
 } satisfies Record<string, TagDefinition>;
 
 export type TagSlug = keyof typeof tags;
