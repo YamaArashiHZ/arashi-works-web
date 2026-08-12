@@ -1,7 +1,7 @@
 import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
-import { tags } from './data/tags';
+import { tags, type TagSlug } from './data/tags';
 import { noteCategorySlugs } from './data/categories';
 
 const contentDateTime = z.iso
@@ -11,7 +11,7 @@ const contentDateTime = z.iso
 const tagSlug = z.string().refine(
     (value) => Object.hasOwn(tags, value),
     { message: '标签未登记' }
-);
+).transform((value) => value as TagSlug);
 
 const works = defineCollection({
     loader: glob({
@@ -47,7 +47,7 @@ const works = defineCollection({
         license: z.string().optional(),
         cover: image().optional(),
         screenshots: z.array(image()).optional(),
-    }).superRefine((data, ctx) => {
+    }).strict().superRefine((data, ctx) => {
         if (data.draft === false && data.cover === undefined) {
             ctx.addIssue({
                 code: 'custom',

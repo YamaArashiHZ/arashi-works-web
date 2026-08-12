@@ -1,0 +1,16 @@
+export const workTypeLabels = {
+    software: '软件',
+    game: '游戏',
+    experiment: '实验',
+} as const;
+
+export const workStatusLabels = {
+    'in-development': '开发中',
+    released: '已发布',
+    maintained: '维护中',
+    paused: '暂停',
+    archived: '已归档',
+} as const;
+
+export type WorkType = keyof typeof workTypeLabels;
+export type WorkStatus = keyof typeof workStatusLabels;
