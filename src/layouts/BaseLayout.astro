@@ -3,6 +3,7 @@ import '../styles/reset.css';
 import '../styles/tokens.css';
 import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 
 interface Props {
     title: string;
@@ -26,5 +27,6 @@ const { title, description } = Astro.props;
         <main id="main-content" tabindex="-1">
             <slot />
         </main>
+        <SiteFooter />
     </body>
 </html>

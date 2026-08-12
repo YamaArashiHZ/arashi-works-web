@@ -19,4 +19,19 @@ test('首页显示正确的品牌信息', async ({ page }) => {
 
     await expect(homeLink).toBeVisible();
     await expect(homeLink).toHaveAttribute('aria-current', 'page');
+
+    const footer = page.getByRole('contentinfo');
+
+    await expect(footer).toContainText('Arashi Works');
+    await expect(footer).toContainText('山嵐异造坊');
+
+    const footerNavigation = page.getByRole('navigation', {
+        name: '页脚导航',
+    });
+
+    await expect(
+        footerNavigation.getByRole('link', {
+            name: '隐私说明',
+        }),
+    ).toHaveAttribute('href', '/privacy/');
 });

@@ -1,0 +1,28 @@
+---
+import { site } from '../data/site';
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+    <p>
+        © {currentYear} {site.name} · {site.nameZh}
+    </p>
+
+    <nav aria-label="页脚导航">
+        <a href="/privacy/">隐私说明</a>
+    </nav>
+</footer>
+<style>
+    .site-footer {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem var(--space-page);
+    }
+
+    .site-footer p {
+        margin: 0;
+    }
+</style>
