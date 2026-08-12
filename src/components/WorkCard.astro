@@ -45,6 +45,7 @@ function formatDateTime(date: Date) {
 <article>
     {cover && (
         <Image
+            class="work-cover"
             src={cover}
             alt=""
             width={600}
@@ -72,6 +73,11 @@ function formatDateTime(date: Date) {
 </article>
 
 <style>
+    .work-cover {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
     .work-meta {
         display: flex;
         flex-wrap: wrap;
