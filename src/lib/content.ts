@@ -1,6 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { NoteCategorySlug } from '../data/categories';
 import type { TagSlug } from '../data/tags';
+import { fetchReleaseManifests } from './manifests';
 
 interface PublishableDate {
     draft: boolean;
@@ -69,4 +70,26 @@ export async function getPublishedNotesByCategory(
     const notes = await getPublishedNotes(now);
 
     return notes.filter(({ data }) => data.category === category);
+}
+
+export async function getPublishedWorkManifests(
+    now = new Date(),
+    fetchImpl: typeof globalThis.fetch = globalThis.fetch,
+) {
+    const works = await getPublishedWorks(now);
+
+    const sources = works.flatMap((work) => {
+        const url = work.data.releaseManifestUrl;
+
+        if (url === undefined) {
+            return [];
+        }
+
+        return [{
+            productId: work.id,
+            url,
+        }];
+    });
+
+    return fetchReleaseManifests(sources, fetchImpl);
 }

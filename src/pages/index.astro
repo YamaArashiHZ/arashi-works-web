@@ -6,6 +6,7 @@ import { getPublishedWorks,
 	getPublishedNotesByWork,
 	getPublishedContentByTag,
 	getPublishedNotesByCategory,
+	getPublishedWorkManifests,
 } from '../lib/content';
 import { tags } from '../data/tags';
 
@@ -14,6 +15,7 @@ const publishedNotes = await getPublishedNotes();
 const schematestNotes = await getPublishedNotesByWork('schema-test');
 const astroTaggedContent = await getPublishedContentByTag('astro');
 const technicalNotes = await getPublishedNotesByCategory('technical');
+const workManifests = await getPublishedWorkManifests();
 ---
 
 <BaseLayout
@@ -29,4 +31,5 @@ const technicalNotes = await getPublishedNotesByCategory('technical');
 	<p>Astro相关手记：{astroTaggedContent.notes.length}</p>
 	<p>已登记标签：{Object.keys(tags).length}</p>
 	<p>技术笔记：{technicalNotes.length}</p>
+	<p>公开发布清单：{workManifests.size}</p>
 </BaseLayout>
