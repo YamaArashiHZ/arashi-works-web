@@ -25,6 +25,7 @@ const works = await getPublishedWorks();
                     status={work.data.status}
                     updatedAt={work.data.updatedAt}
                     tagSlugs={work.data.tags}
+                    href={`/works/${work.id}/`}
                 /></li>
             ))}
         </WorkGrid>

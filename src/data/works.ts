@@ -12,5 +12,13 @@ export const workStatusLabels = {
     archived: '已归档',
 } as const;
 
+export const workPlatformLabels = {
+    web: '网页',
+    windows: 'Windows',
+    linux: 'Linux',
+    android: 'Android',
+} as const;
+
 export type WorkType = keyof typeof workTypeLabels;
 export type WorkStatus = keyof typeof workStatusLabels;
+export type WorkPlatform = keyof typeof workPlatformLabels;

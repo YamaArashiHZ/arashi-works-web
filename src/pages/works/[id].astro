@@ -1,0 +1,129 @@
+---
+import {
+    render,
+    type CollectionEntry,
+} from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPublishedWorks } from '../../lib/content';
+import {
+    workStatusLabels,
+    workTypeLabels,
+    workPlatformLabels,
+} from '../../data/works';
+import { tags } from '../../data/tags';
+import { formatDateTime } from '../../lib/dates';
+
+type PublishedWork = CollectionEntry<'works'> & {
+    data: CollectionEntry<'works'>['data'] & {
+        publishedAt: Date;
+    };
+};
+
+interface Props {
+    work: PublishedWork;
+}
+
+export async function getStaticPaths() {
+    const works = await getPublishedWorks();
+
+    return works.map((work) => ({
+        params: { id: work.id },
+        props: { work },
+    }));
+}
+
+const { work } = Astro.props;
+const { Content } = await render(work);
+---
+
+<BaseLayout
+    title={`${work.data.title} | Arashi Works`}
+    description={work.data.summary}
+>
+    <p><a href="/works/">返回作品列表</a></p>
+    <h1>{work.data.title}</h1>
+    <p>{work.data.summary}</p>
+
+    <p class="work-update">
+        <span>
+            发布于{' '}
+            <time datetime={work.data.publishedAt.toISOString()}>
+                {formatDateTime(work.data.publishedAt)}
+            </time>
+        </span>
+
+        {work.data.updatedAt && (
+            <span>
+                更新于{' '}
+                <time datetime={work.data.updatedAt.toISOString()}>
+                    {formatDateTime(work.data.updatedAt)}
+                </time>
+            </span>
+        )}
+    </p>
+    <dl class="work-meta">
+        <div>
+            <dt>类型</dt>
+            <dd>{workTypeLabels[work.data.type]}</dd>
+        </div>
+        <div>
+            <dt>状态</dt>
+            <dd>{workStatusLabels[work.data.status]}</dd>
+        </div>
+        <div>
+            <dt>平台</dt>
+            <dd>
+                {work.data.platforms.map((platform) => workPlatformLabels[platform]).join('、')}
+            </dd>
+        </div>
+        <div>
+            <dt>标签</dt>
+            <dd>
+                {work.data.tags.map((tagSlug) => tags[tagSlug].name).join('、')}
+            </dd>
+        </div>
+    </dl>
+    {work.data.cover && (
+        <Image
+            class="work-cover"
+            src={work.data.cover}
+            alt=""
+            width={1200}
+        />
+    )}
+    <section aria-labelledby="work-description">
+        <h2 id="work-description">作品介绍</h2>
+        <Content />
+    </section>
+</BaseLayout>
+
+<style>
+    .work-cover {
+        display: block;
+        width: 100%;
+        max-width: 75rem;
+        height: auto;
+    }
+
+    .work-update {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .work-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .work-meta div {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .work-meta dd {
+        margin: 0;
+    }
+</style>

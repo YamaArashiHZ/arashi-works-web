@@ -18,3 +18,20 @@ test('作品页标记正确的当前导航项', async ({ page }) => {
     await expect(worksLink).toHaveAttribute('aria-current', 'page');
     await expect(homeLink).not.toHaveAttribute('aria-current', 'page');
 });
+
+test('可以从作品列表进入 PixBox 详情页', async ({ page }) => {
+    await page.goto('/works/');
+
+    await page.getByRole('link', { name: 'PixBox' }).click();
+
+    await expect(page).toHaveURL('/works/pixbox/');
+    await expect(
+        page.getByRole('heading', { level: 1 }),
+    ).toHaveText('PixBox');
+    await expect(
+        page.getByRole('heading', { name: '作品介绍' }),
+    ).toBeVisible();
+    await expect(
+        page.getByRole('link', { name: '返回作品列表' }),
+    ).toHaveAttribute('href', '/works/');
+});
