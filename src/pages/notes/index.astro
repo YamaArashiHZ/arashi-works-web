@@ -1,0 +1,46 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPublishedNotes } from "../../lib/content";
+import NoteCard from "../../components/NoteCard.astro";
+import { estimateReadingMinutes } from "../../lib/reading-time";
+
+const notes = await getPublishedNotes();
+---
+
+<BaseLayout
+    title="异造手记 | Arashi Works"
+    description="Arashi Works 的开发记录、技术笔记与创作过程。"
+>
+    <h1>异造手记</h1>
+    <p>记录软件、游戏与网站的开发过程、技术实现和制作杂谈。</p>
+
+    {notes.length > 0 ? (
+        <ul class="note-list">
+            {notes.map((note) => (
+                <li>
+                    <NoteCard
+                        title={note.data.title}
+                        summary={note.data.summary}
+                        category={note.data.category}
+                        publishedAt={note.data.publishedAt}
+                        href={`/notes/${note.id}/`}
+                        tagSlugs={note.data.tags}
+                        readingMinutes={estimateReadingMinutes(note.body ?? '')}
+                    />
+                </li>
+            ))}
+        </ul>
+    ) : (
+        <p>暂时没有公开手记。</p>
+    )}
+</BaseLayout>
+
+<style>
+    .note-list {
+        display: grid;
+        gap: 1.5rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+</style>

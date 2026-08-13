@@ -1,0 +1,96 @@
+---
+import { getEntry, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { noteCategories } from "../../data/categories";
+import { getPublishedNotes } from "../../lib/content";
+import { formatDateTime } from "../../lib/dates";
+import { tags } from "../../data/tags";
+import { estimateReadingMinutes } from "../../lib/reading-time";
+
+type PublishedNote =
+    Awaited<ReturnType<typeof getPublishedNotes>>[number];
+
+interface Props {
+    note: PublishedNote;
+}
+
+export async function getStaticPaths() {
+    const notes = await getPublishedNotes();
+
+    return notes.map((note) => ({
+        params: { id: note.id },
+        props: { note },
+    }));
+}
+
+const { note } = Astro.props;
+const { Content } = await render(note);
+const readingMinutes = estimateReadingMinutes(note.body ?? '');
+const relatedWork = note.data.work
+    ? await getEntry(note.data.work)
+    : undefined;
+---
+
+<BaseLayout
+    title={`${note.data.title} | Arashi Works`}
+    description={note.data.description ?? note.data.summary}
+>
+    <p><a href="/notes/">返回异造手记</a></p>
+
+    <article>
+        <header>
+            <p>{noteCategories[note.data.category].name}</p>
+            <ul class="note-tags" aria-label="手记标签">
+                {note.data.tags.map((tagSlug) => (
+                    <li>{tags[tagSlug].name}</li>
+                ))}
+            </ul>
+            <h1>{note.data.title}</h1>
+            <p>{note.data.summary}</p>
+            <p class="note-meta">
+                <span>
+                    发布于
+                    <time datetime={note.data.publishedAt.toISOString()}>
+                        {formatDateTime(note.data.publishedAt)}
+                    </time>
+                </span>
+                {note.data.updatedAt && (
+                    <span>
+                        更新于{' '}
+                        <time datetime={note.data.updatedAt.toISOString()}>
+                            {formatDateTime(note.data.updatedAt)}
+                        </time>
+                    </span>
+                )}
+                <span>预计阅读 {readingMinutes} 分钟</span>
+            </p>
+            {relatedWork && (
+                <p>
+                    关联作品：
+                    <a href={`/works/${relatedWork.id}/`}>
+                        {relatedWork.data.title}
+                    </a>
+                </p>
+            )}
+        </header>
+
+        <Content />
+    </article>
+</BaseLayout>
+
+<style>
+    .note-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .note-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+</style>

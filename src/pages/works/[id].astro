@@ -5,7 +5,11 @@ import {
 } from 'astro:content';
 import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPublishedWorks } from '../../lib/content';
+import {
+    getPublishedNotesByWork,
+    getPublishedWorks,
+} from '../../lib/content';
+import NoteCard from '../../components/NoteCard.astro';
 import {
     workStatusLabels,
     workTypeLabels,
@@ -13,6 +17,7 @@ import {
 } from '../../data/works';
 import { tags } from '../../data/tags';
 import { formatDateTime } from '../../lib/dates';
+import { estimateReadingMinutes } from '../../lib/reading-time';
 
 type PublishedWork = CollectionEntry<'works'> & {
     data: CollectionEntry<'works'>['data'] & {
@@ -35,6 +40,7 @@ export async function getStaticPaths() {
 
 const { work } = Astro.props;
 const { Content } = await render(work);
+const relatedNotes = await getPublishedNotesByWork(work.id);
 ---
 
 <BaseLayout
@@ -112,6 +118,27 @@ const { Content } = await render(work);
         <h2 id="work-description">作品介绍</h2>
         <Content />
     </section>
+
+    {relatedNotes.length > 0 && (
+        <section aria-labelledby="related-notes">
+            <h2 id="related-notes">相关异造手记</h2>
+            <ul class="related-notes">
+                {relatedNotes.map((note) => (
+                    <li>
+                        <NoteCard
+                            title={note.data.title}
+                            summary={note.data.summary}
+                            category={note.data.category}
+                            publishedAt={note.data.publishedAt}
+                            href={`/notes/${note.id}/`}
+                            tagSlugs={note.data.tags}
+                            readingMinutes={estimateReadingMinutes(note.body ?? '')}
+                        />
+                    </li>
+                ))}
+            </ul>
+        </section>
+    )}
 </BaseLayout>
 
 <style>
@@ -147,5 +174,13 @@ const { Content } = await render(work);
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
+    }
+
+    .related-notes {
+        display: grid;
+        gap: 1.5rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
     }
 </style>

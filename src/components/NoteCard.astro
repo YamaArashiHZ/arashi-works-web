@@ -1,0 +1,55 @@
+---
+import type { NoteCategorySlug } from "../data/categories";
+import { noteCategories } from "../data/categories";
+import { formatDateTime } from "../lib/dates";
+import { tags, type TagSlug } from '../data/tags';
+
+interface Props {
+    title: string;
+    summary: string;
+    category: NoteCategorySlug;
+    publishedAt: Date;
+    href: string;
+    tagSlugs: TagSlug[];
+    readingMinutes: number;
+}
+
+const {
+    title,
+    summary,
+    category,
+    publishedAt,
+    href,
+    tagSlugs,
+    readingMinutes,
+} = Astro.props;
+---
+
+<article>
+    <p>{noteCategories[category].name}</p>
+    <h2><a href={href}>{title}</a></h2>
+    <p>{summary}</p>
+    <ul class="note-tags" aria-label="手记标签">
+        {tagSlugs.map((tagSlug) => (
+            <li>{tags[tagSlug].name}</li>
+        ))}
+    </ul>
+    <p>
+        发布于
+        <time datetime={publishedAt.toISOString()}>
+            {formatDateTime(publishedAt)}
+        </time>
+    </p>
+    <span>预计阅读 {readingMinutes} 分钟</span>
+</article>
+
+<style>
+    .note-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+</style>
