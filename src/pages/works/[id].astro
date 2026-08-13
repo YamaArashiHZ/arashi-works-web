@@ -83,7 +83,23 @@ const { Content } = await render(work);
                 {work.data.tags.map((tagSlug) => tags[tagSlug].name).join('、')}
             </dd>
         </div>
+        {work.data.license && (
+            <div>
+                <dt>许可证</dt>
+                <dd>{work.data.license}</dd>
+            </div>
+        )}
     </dl>
+    {(work.data.repositoryUrl || work.data.feedbackUrl) && (
+        <nav class="work-actions" aria-label="项目链接">
+            {work.data.repositoryUrl && (
+                <a href={work.data.repositoryUrl}>查看源代码</a>
+            )}
+            {work.data.feedbackUrl && (
+                <a href={work.data.feedbackUrl}>反馈问题</a>
+            )}
+        </nav>
+    )}
     {work.data.cover && (
         <Image
             class="work-cover"
@@ -125,5 +141,11 @@ const { Content } = await render(work);
 
     .work-meta dd {
         margin: 0;
+    }
+
+    .work-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
 </style>
