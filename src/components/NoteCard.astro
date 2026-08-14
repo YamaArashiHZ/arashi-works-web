@@ -2,16 +2,21 @@
 import type { NoteCategorySlug } from "../data/categories";
 import { noteCategories } from "../data/categories";
 import { formatDateTime } from "../lib/dates";
-import { tags, type TagSlug } from '../data/tags';
+import { tags, type TagSlug } from "../data/tags";
 
 interface Props {
     title: string;
     summary: string;
     category: NoteCategorySlug;
     publishedAt: Date;
+    updatedAt?: Date;
     href: string;
     tagSlugs: TagSlug[];
     readingMinutes: number;
+    relatedWork?: {
+        title: string;
+        href: string;
+    };
 }
 
 const {
@@ -19,9 +24,11 @@ const {
     summary,
     category,
     publishedAt,
+    updatedAt,
     href,
     tagSlugs,
     readingMinutes,
+    relatedWork,
 } = Astro.props;
 ---
 
@@ -30,17 +37,35 @@ const {
     <h2><a href={href}>{title}</a></h2>
     <p>{summary}</p>
     <ul class="note-tags" aria-label="手记标签">
-        {tagSlugs.map((tagSlug) => (
-            <li>{tags[tagSlug].name}</li>
-        ))}
+        {tagSlugs.map((tagSlug) => <li>{tags[tagSlug].name}</li>)}
     </ul>
-    <p>
-        发布于
-        <time datetime={publishedAt.toISOString()}>
-            {formatDateTime(publishedAt)}
-        </time>
+    <p class="note-meta">
+        <span>
+            发布于{" "}
+            <time datetime={publishedAt.toISOString()}>
+                {formatDateTime(publishedAt)}
+            </time>
+        </span>
+        {
+            updatedAt && (
+                <span>
+                    更新于{" "}
+                    <time datetime={updatedAt.toISOString()}>
+                        {formatDateTime(updatedAt)}
+                    </time>
+                </span>
+            )
+        }
+        <span>预计阅读 {readingMinutes} 分钟</span>
     </p>
-    <span>预计阅读 {readingMinutes} 分钟</span>
+    {
+        relatedWork && (
+            <p>
+                关联作品：
+                <a href={relatedWork.href}>{relatedWork.title}</a>
+            </p>
+        )
+    }
 </article>
 
 <style>
@@ -51,5 +76,11 @@ const {
         margin: 0;
         padding: 0;
         list-style: none;
+    }
+
+    .note-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
 </style>
