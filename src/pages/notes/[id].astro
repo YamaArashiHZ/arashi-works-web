@@ -37,20 +37,47 @@ const relatedWork = note.data.work
 >
     <p><a href="/notes/">返回异造手记</a></p>
 
-    <article>
+    <article
+        data-pagefind-body
+        data-pagefind-filter="type:note"
+        data-pagefind-meta="type:note"
+    >
         <header>
-            <p>{noteCategories[note.data.category].name}</p>
-            <ul class="note-tags" aria-label="手记标签">
+            <p
+                data-category={note.data.category}
+                data-pagefind-filter="category[data-category]"
+                data-pagefind-meta="category[data-category]"
+            >
+                {noteCategories[note.data.category].name}
+            </p>
+            <ul
+                class="note-tags"
+                aria-label="手记标签"
+                data-tags={JSON.stringify(note.data.tags)}
+                data-pagefind-meta="tags[data-tags]"
+            >
                 {note.data.tags.map((tagSlug) => (
-                    <li>{tags[tagSlug].name}</li>
+                    <li
+                        data-tag={tagSlug}
+                        data-pagefind-filter="tag[data-tag]"
+                    >
+                        {tags[tagSlug].name}
+                    </li>
                 ))}
             </ul>
-            <h1>{note.data.title}</h1>
-            <p>{note.data.summary}</p>
-            <p class="note-meta">
+            <h1 data-pagefind-meta="title">
+                {note.data.title}
+            </h1>
+            <p data-pagefind-meta="summary">
+                {note.data.summary}
+            </p>
+            <p class="note-meta" data-pagefind-ignore>
                 <span>
                     发布于
-                    <time datetime={note.data.publishedAt.toISOString()}>
+                    <time
+                        datetime={note.data.publishedAt.toISOString()}
+                        data-pagefind-meta="publishedAt[datetime]"
+                    >
                         {formatDateTime(note.data.publishedAt)}
                     </time>
                 </span>
@@ -65,7 +92,7 @@ const relatedWork = note.data.work
                 <span>预计阅读 {readingMinutes} 分钟</span>
             </p>
             {relatedWork && (
-                <p>
+                <p data-pagefind-ignore>
                     关联作品：
                     <a href={`/works/${relatedWork.id}/`}>
                         {relatedWork.data.title}

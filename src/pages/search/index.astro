@@ -1,0 +1,513 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { noteCategories } from "../../data/categories";
+import { workTypeLabels } from "../../data/works";
+import { tags } from "../../data/tags";
+
+const categoryLabels = Object.fromEntries(
+    Object.entries(noteCategories).map(([slug, category]) => [
+        slug,
+        category.name,
+    ]),
+);
+
+const tagLabels = Object.fromEntries(
+    Object.entries(tags).map(([slug, tag]) => [slug, tag.name]),
+);
+---
+
+<BaseLayout
+    title="搜索 | Arashi Works"
+    description="搜索 Arashi Works 的作品与手记。"
+>
+    <h1>搜索</h1>
+    <p>搜索作品、开发记录与技术笔记。</p>
+
+    <form action="/search/" method="get" role="search">
+        <label for="search-query">关键词</label>
+        <div class="search-query-control">
+            <input
+                id="search-query"
+                name="q"
+                type="search"
+                autocomplete="off"
+            />
+
+            <button class="search-submit" type="submit" aria-label="搜索">
+                <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    aria-hidden="true"
+                    focusable="false"
+                >
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="m16 16 5 5"></path>
+                </svg>
+            </button>
+        </div>
+        <fieldset>
+            <legend>内容类型</legend>
+
+            <label class="content-type-option">
+                <input
+                    id="work-type-filter"
+                    type="checkbox"
+                    name="type"
+                    value="work"
+                />
+                作品
+            </label>
+
+            <div id="work-filter-panel" hidden>
+                <fieldset>
+                    <legend>作品类型</legend>
+
+                    {
+                        Object.entries(workTypeLabels).map(([slug, label]) => (
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    name="workType"
+                                    value={slug}
+                                />
+                                {label}
+                            </label>
+                        ))
+                    }
+                </fieldset>
+            </div>
+
+            <label class="content-type-option">
+                <input
+                    id="note-type-filter"
+                    type="checkbox"
+                    name="type"
+                    value="note"
+                />
+                异造手记
+            </label>
+
+            <div id="note-category-panel" hidden>
+                <fieldset>
+                    <legend>手记栏目</legend>
+
+                    {
+                        Object.entries(noteCategories).map(
+                            ([slug, category]) => (
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="category"
+                                        value={slug}
+                                    />
+                                    {category.name}
+                                </label>
+                            ),
+                        )
+                    }
+                </fieldset>
+            </div>
+        </fieldset>
+    </form>
+
+    <section
+        aria-live="polite"
+        aria-labelledby="search-results-heading"
+        data-category-labels={JSON.stringify(categoryLabels)}
+        data-work-type-labels={JSON.stringify(workTypeLabels)}
+        data-tag-labels={JSON.stringify(tagLabels)}
+    >
+        <h2 id="search-results-heading">搜索结果</h2>
+        <p id="search-status">正在加载搜索索引……</p>
+        <ul id="search-results"></ul>
+    </section>
+</BaseLayout>
+
+<style>
+    .search-query-control {
+        position: relative;
+    }
+
+    .search-query-control input {
+        box-sizing: border-box;
+        width: 100%;
+        padding-inline-end: 3rem;
+    }
+
+    .search-submit {
+        position: absolute;
+        inset-block: 0;
+        inset-inline-end: 0;
+        display: grid;
+        width: 2.75rem;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        place-items: center;
+        cursor: pointer;
+    }
+
+    .search-submit svg {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+    }
+
+    .content-type-option {
+        display: block;
+    }
+
+    :global(#search-results a),
+    :global(.search-result-date) {
+        display: block;
+    }
+
+    :global(.search-result-classification) {
+        margin: 0;
+    }
+
+    :global(.search-result-tags) {
+        margin: 0;
+    }
+
+    :global(.search-result-summary) {
+    }
+</style>
+
+<script is:inline type="module">
+    // 获取页面元素
+    const searchInput = document.querySelector("#search-query");
+    const searchStatus = document.querySelector("#search-status");
+    const searchResults = document.querySelector("#search-results");
+    const searchSection = document.querySelector(
+        '[aria-labelledby="search-results-heading"]',
+    );
+
+    // 从 URL 恢复关键词与复选框
+    const searchParams = new URL(window.location.href).searchParams;
+    const query = searchParams.get("q") ?? "";
+
+    if (searchInput instanceof HTMLInputElement) {
+        searchInput.value = query;
+    }
+
+    function restoreCheckboxGroup(name) {
+        const inputs = document.querySelectorAll(`input[name="${name}"]`);
+
+        const validValues = new Set();
+
+        for (const input of inputs) {
+            if (input instanceof HTMLInputElement) {
+                validValues.add(input.value);
+            }
+        }
+
+        const selectedValues = new Set(
+            searchParams.getAll(name).filter((value) => validValues.has(value)),
+        );
+
+        for (const input of inputs) {
+            if (input instanceof HTMLInputElement) {
+                input.checked = selectedValues.has(input.value);
+            }
+        }
+
+        return selectedValues;
+    }
+
+    const selectedTypes = restoreCheckboxGroup("type");
+    const selectedCategories = restoreCheckboxGroup("category");
+    const selectedWorkTypes = restoreCheckboxGroup("workType");
+    const noteTypeInput = document.querySelector("#note-type-filter");
+    const noteCategoryPanel = document.querySelector("#note-category-panel");
+    const workTypeInput = document.querySelector("#work-type-filter");
+    const workFilterPanel = document.querySelector("#work-filter-panel");
+
+    function updateWorkFilterPanel() {
+        if (
+            !(workTypeInput instanceof HTMLInputElement) ||
+            !(workFilterPanel instanceof HTMLElement)
+        ) {
+            return;
+        }
+
+        workFilterPanel.hidden = !workTypeInput.checked;
+    }
+
+    function updateNoteCategoryPanel() {
+        if (
+            !(noteTypeInput instanceof HTMLInputElement) ||
+            !(noteCategoryPanel instanceof HTMLElement)
+        ) {
+            return;
+        }
+
+        noteCategoryPanel.hidden = !noteTypeInput.checked;
+    }
+
+    updateWorkFilterPanel();
+
+    if (workTypeInput instanceof HTMLInputElement) {
+        workTypeInput.addEventListener("change", updateWorkFilterPanel);
+    }
+
+    updateNoteCategoryPanel();
+
+    if (noteTypeInput instanceof HTMLInputElement) {
+        noteTypeInput.addEventListener("change", updateNoteCategoryPanel);
+    }
+
+    // 读取 Astro 在 HTML 中提供的中文标签映射
+    const categoryLabels =
+        searchSection instanceof HTMLElement
+            ? JSON.parse(searchSection.dataset.categoryLabels ?? "{}")
+            : {};
+
+    const workTypeLabels =
+        searchSection instanceof HTMLElement
+            ? JSON.parse(searchSection.dataset.workTypeLabels ?? "{}")
+            : {};
+
+    const tagLabels =
+        searchSection instanceof HTMLElement
+            ? JSON.parse(searchSection.dataset.tagLabels ?? "{}")
+            : {};
+
+    const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+        timeZone: "Asia/Shanghai",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    });
+
+    function setSearchStatus(message) {
+        if (searchStatus instanceof HTMLParagraphElement) {
+            searchStatus.textContent = message;
+        }
+    }
+
+    function getTypeLabel(type) {
+        if (type === "work") return "作品";
+        if (type === "note") return "异造手记";
+        return "内容";
+    }
+
+    // 创建“类型 · 分类”信息（异造手记 · 开发记录 / 作品 · 软件）
+    function createClassification(meta) {
+        const classification = document.createElement("p");
+        classification.className = "search-result-classification";
+
+        const typeLabel = document.createElement("span");
+        typeLabel.className = "search-result-type";
+        typeLabel.textContent = getTypeLabel(meta.type);
+
+        classification.append(typeLabel);
+
+        let detailLabel;
+
+        if (meta.type === "note") {
+            detailLabel = categoryLabels[meta.category];
+        } else if (meta.type === "work") {
+            detailLabel = workTypeLabels[meta.workType];
+        }
+
+        if (detailLabel) {
+            const detail = document.createElement("span");
+            detail.className = "search-result-detail";
+            detail.textContent = detailLabel;
+
+            classification.append(" · ", detail);
+        }
+
+        return classification;
+    }
+
+    function createPublishedTime(publishedAt) {
+        if (!publishedAt) {
+            return null;
+        }
+
+        const publishedDate = new Date(publishedAt);
+
+        if (Number.isNaN(publishedDate.getTime())) {
+            return null;
+        }
+
+        const time = document.createElement("time");
+        time.className = "search-result-date";
+        time.dateTime = publishedAt;
+        time.textContent = dateFormatter.format(publishedDate);
+
+        return time;
+    }
+
+    function parseTags(tags) {
+        if (!tags) {
+            return [];
+        }
+
+        try {
+            const parsedTags = JSON.parse(tags);
+
+            return Array.isArray(parsedTags) ? parsedTags : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function createSearchOptions() {
+        const branches = [];
+        const categories = [...selectedCategories];
+
+        if (selectedTypes.has("work")) {
+            const workBranch = {
+                type: "work",
+            };
+
+            const workTypes = [...selectedWorkTypes];
+
+            if (workTypes.length === 1) {
+                workBranch.workType = workTypes[0];
+            } else if (workTypes.length > 1) {
+                workBranch.workType = {
+                    any: workTypes,
+                };
+            }
+
+            branches.push(workBranch);
+        }
+
+        if (selectedTypes.has("note")) {
+            const noteBranch = {
+                type: "note",
+            };
+
+            if (categories.length === 1) {
+                noteBranch.category = categories[0];
+            } else if (categories.length > 1) {
+                noteBranch.category = {
+                    any: categories,
+                };
+            }
+
+            branches.push(noteBranch);
+        }
+
+        if (branches.length === 0) {
+            return {};
+        }
+
+        if (branches.length === 1) {
+            return {
+                filters: branches[0],
+            };
+        }
+
+        return {
+            filters: {
+                any: branches,
+            },
+        };
+    }
+
+    function selectExcerpt(result, query) {
+        if (!query) {
+            return "";
+        }
+
+        const normalizedQuery = query.toLocaleLowerCase("zh-CN");
+        const candidates = [result, ...(result.sub_results ?? [])];
+
+        const exactMatch = candidates.find((candidate) =>
+            candidate.plain_excerpt
+                ?.toLocaleLowerCase("zh-CN")
+                .includes(normalizedQuery),
+        );
+
+        return exactMatch?.excerpt ?? result.excerpt ?? "";
+    }
+
+    function createResultItem(result, query) {
+        const item = document.createElement("li");
+
+        const link = document.createElement("a");
+        link.href = result.url;
+        link.textContent = result.meta.title ?? result.url;
+        item.append(link);
+
+        item.append(createClassification(result.meta));
+
+        const publishedTime = createPublishedTime(result.meta.publishedAt);
+        if (publishedTime) item.append(publishedTime);
+
+        const tags = parseTags(result.meta.tags);
+        if (tags.length > 0) {
+            const tagList = document.createElement("p");
+            tagList.className = "search-result-tags";
+            const tagNames = tags.map((tag) => tagLabels[tag] ?? tag);
+            tagList.textContent = `标签： ${tagNames.join(" · ")}`;
+
+            item.append(tagList);
+        }
+
+        const excerpt = selectExcerpt(result, query);
+        const summaryText = result.meta.summary ?? result.plain_excerpt;
+        if (excerpt || summaryText) {
+            const summary = document.createElement("p");
+            summary.className = "search-result-summary";
+
+            if (excerpt) {
+                summary.innerHTML = excerpt;
+            } else {
+                summary.textContent = summaryText;
+            }
+
+            item.append(summary);
+        }
+
+        return item;
+    }
+
+    try {
+        const pagefindPath = "/pagefind/pagefind.js";
+        const pagefind = await import(pagefindPath);
+
+        await pagefind.init();
+
+        const normalizedQuery = query.trim();
+
+        const hasActiveFilters = selectedTypes.size > 0;
+
+        if (normalizedQuery === "" && !hasActiveFilters) {
+            setSearchStatus("请输入关键词或选择筛选条件。");
+        } else {
+            const searchQuery = normalizedQuery === "" ? null : normalizedQuery;
+
+            const search = await pagefind.search(
+                searchQuery,
+                createSearchOptions(),
+            );
+            const results = await Promise.all(
+                search.results.map((result) => result.data()),
+            );
+
+            setSearchStatus(`找到 ${results.length} 条结果。`);
+
+            if (searchResults instanceof HTMLUListElement) {
+                for (const result of results) {
+                    searchResults.append(
+                        createResultItem(result, normalizedQuery),
+                    );
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Pagefind 搜索失败：", error);
+        setSearchStatus("搜索暂时不可用，请稍后再试。");
+    }
+</script>

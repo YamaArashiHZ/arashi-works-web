@@ -1,26 +1,20 @@
 ---
-import {
-    render,
-    type CollectionEntry,
-} from 'astro:content';
-import { Image } from 'astro:assets';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import {
-    getPublishedNotesByWork,
-    getPublishedWorks,
-} from '../../lib/content';
-import NoteCard from '../../components/NoteCard.astro';
+import { render, type CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPublishedNotesByWork, getPublishedWorks } from "../../lib/content";
+import NoteCard from "../../components/NoteCard.astro";
 import {
     workStatusLabels,
     workTypeLabels,
     workPlatformLabels,
-} from '../../data/works';
-import { tags } from '../../data/tags';
-import { formatDateTime } from '../../lib/dates';
-import { estimateReadingMinutes } from '../../lib/reading-time';
+} from "../../data/works";
+import { tags } from "../../data/tags";
+import { formatDateTime } from "../../lib/dates";
+import { estimateReadingMinutes } from "../../lib/reading-time";
 
-type PublishedWork = CollectionEntry<'works'> & {
-    data: CollectionEntry<'works'>['data'] & {
+type PublishedWork = CollectionEntry<"works"> & {
+    data: CollectionEntry<"works">["data"] & {
         publishedAt: Date;
     };
 };
@@ -48,97 +42,161 @@ const relatedNotes = await getPublishedNotesByWork(work.id);
     description={work.data.summary}
 >
     <p><a href="/works/">返回作品列表</a></p>
-    <h1>{work.data.title}</h1>
-    <p>{work.data.summary}</p>
 
-    <p class="work-update">
-        <span>
-            发布于{' '}
-            <time datetime={work.data.publishedAt.toISOString()}>
-                {formatDateTime(work.data.publishedAt)}
-            </time>
-        </span>
+    <article
+        data-pagefind-body
+        data-pagefind-filter="type:work"
+        data-pagefind-meta="type:work"
+    >
+        <h1 data-pagefind-meta="title">
+            {work.data.title}
+        </h1>
+        <p data-pagefind-meta="summary">
+            {work.data.summary}
+        </p>
 
-        {work.data.updatedAt && (
+        <p class="work-update" data-pagefind-ignore>
             <span>
-                更新于{' '}
-                <time datetime={work.data.updatedAt.toISOString()}>
-                    {formatDateTime(work.data.updatedAt)}
+                发布于{" "}
+                <time
+                    datetime={work.data.publishedAt.toISOString()}
+                    data-pagefind-meta="publishedAt[datetime]"
+                >
+                    {formatDateTime(work.data.publishedAt)}
                 </time>
             </span>
-        )}
-    </p>
-    <dl class="work-meta">
-        <div>
-            <dt>类型</dt>
-            <dd>{workTypeLabels[work.data.type]}</dd>
-        </div>
-        <div>
-            <dt>状态</dt>
-            <dd>{workStatusLabels[work.data.status]}</dd>
-        </div>
-        <div>
-            <dt>平台</dt>
-            <dd>
-                {work.data.platforms.map((platform) => workPlatformLabels[platform]).join('、')}
-            </dd>
-        </div>
-        <div>
-            <dt>标签</dt>
-            <dd>
-                {work.data.tags.map((tagSlug) => tags[tagSlug].name).join('、')}
-            </dd>
-        </div>
-        {work.data.license && (
-            <div>
-                <dt>许可证</dt>
-                <dd>{work.data.license}</dd>
-            </div>
-        )}
-    </dl>
-    {(work.data.repositoryUrl || work.data.feedbackUrl) && (
-        <nav class="work-actions" aria-label="项目链接">
-            {work.data.repositoryUrl && (
-                <a href={work.data.repositoryUrl}>查看源代码</a>
-            )}
-            {work.data.feedbackUrl && (
-                <a href={work.data.feedbackUrl}>反馈问题</a>
-            )}
-        </nav>
-    )}
-    {work.data.cover && (
-        <Image
-            class="work-cover"
-            src={work.data.cover}
-            alt=""
-            width={1200}
-        />
-    )}
-    <section aria-labelledby="work-description">
-        <h2 id="work-description">作品介绍</h2>
-        <Content />
-    </section>
 
-    {relatedNotes.length > 0 && (
-        <section aria-labelledby="related-notes">
-            <h2 id="related-notes">相关异造手记</h2>
-            <ul class="related-notes">
-                {relatedNotes.map((note) => (
-                    <li>
-                        <NoteCard
-                            title={note.data.title}
-                            summary={note.data.summary}
-                            category={note.data.category}
-                            publishedAt={note.data.publishedAt}
-                            href={`/notes/${note.id}/`}
-                            tagSlugs={note.data.tags}
-                            readingMinutes={estimateReadingMinutes(note.body ?? '')}
-                        />
-                    </li>
-                ))}
-            </ul>
+            {
+                work.data.updatedAt && (
+                    <span>
+                        更新于{" "}
+                        <time datetime={work.data.updatedAt.toISOString()}>
+                            {formatDateTime(work.data.updatedAt)}
+                        </time>
+                    </span>
+                )
+            }
+        </p>
+        <dl class="work-meta">
+            <div>
+                <dt>类型</dt>
+                <dd
+                    data-work-type={work.data.type}
+                    data-pagefind-filter="workType[data-work-type]"
+                    data-pagefind-meta="workType[data-work-type]"
+                >
+                    {workTypeLabels[work.data.type]}
+                </dd>
+            </div>
+            <div>
+                <dt>状态</dt>
+                <dd
+                    data-status={work.data.status}
+                    data-pagefind-filter="status[data-status]"
+                >
+                    {workStatusLabels[work.data.status]}
+                </dd>
+            </div>
+            <div>
+                <dt>平台</dt>
+                <dd>
+                    {
+                        work.data.platforms.map((platform, index) => (
+                            <>
+                                <span
+                                    data-platform={platform}
+                                    data-pagefind-filter="platform[data-platform]"
+                                >
+                                    {workPlatformLabels[platform]}
+                                </span>
+                                {index < work.data.platforms.length - 1 && "、"}
+                            </>
+                        ))
+                    }
+                </dd>
+            </div>
+            <div>
+                <dt>标签</dt>
+                <dd
+                    data-tags={JSON.stringify(work.data.tags)}
+                    data-pagefind-meta="tags[data-tags]"
+                >
+                    {work.data.tags.map((tagSlug, index) => (
+                        <>
+                            <span
+                                data-tag={tagSlug}
+                                data-pagefind-filter="tag[data-tag]"
+                            >
+                                {tags[tagSlug].name}
+                            </span>
+                            {index < work.data.tags.length - 1 && "、"}
+                        </>
+                    ))}
+                </dd>
+            </div>
+            {
+                work.data.license && (
+                    <div>
+                        <dt>许可证</dt>
+                        <dd>{work.data.license}</dd>
+                    </div>
+                )
+            }
+        </dl>
+        {
+            (work.data.repositoryUrl || work.data.feedbackUrl) && (
+                <nav class="work-actions" aria-label="项目链接">
+                    {work.data.repositoryUrl && (
+                        <a href={work.data.repositoryUrl}>查看源代码</a>
+                    )}
+                    {work.data.feedbackUrl && (
+                        <a href={work.data.feedbackUrl}>反馈问题</a>
+                    )}
+                </nav>
+            )
+        }
+        {
+            work.data.cover && (
+                <Image
+                    class="work-cover"
+                    src={work.data.cover}
+                    alt=""
+                    width={1200}
+                    data-pagefind-meta="image[src]"
+                />
+            )
+        }
+        <section aria-labelledby="work-description">
+            <h2 id="work-description">作品介绍</h2>
+            <Content />
         </section>
-    )}
+
+        {
+            relatedNotes.length > 0 && (
+                <section aria-labelledby="related-notes" data-pagefind-ignore>
+                    <h2 id="related-notes">相关异造手记</h2>
+                    <ul class="related-notes">
+                        {relatedNotes.map((note) => (
+                            <li>
+                                <NoteCard
+                                    title={note.data.title}
+                                    summary={note.data.summary}
+                                    category={note.data.category}
+                                    publishedAt={note.data.publishedAt}
+                                    updatedAt={note.data.updatedAt}
+                                    href={`/notes/${note.id}/`}
+                                    tagSlugs={note.data.tags}
+                                    readingMinutes={estimateReadingMinutes(
+                                        note.body ?? "",
+                                    )}
+                                />
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )
+        }
+    </article>
 </BaseLayout>
 
 <style>
