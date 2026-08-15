@@ -1,7 +1,11 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { noteCategories } from "../../data/categories";
-import { workTypeLabels } from "../../data/works";
+import {
+    workPlatformLabels,
+    workStatusLabels,
+    workTypeLabels,
+} from "../../data/works";
 import { tags } from "../../data/tags";
 
 const categoryLabels = Object.fromEntries(
@@ -74,6 +78,42 @@ const tagLabels = Object.fromEntries(
                                 {label}
                             </label>
                         ))
+                    }
+                </fieldset>
+                <fieldset>
+                    <legend>作品状态</legend>
+
+                    {
+                        Object.entries(workStatusLabels).map(
+                            ([slug, label]) => (
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="status"
+                                        value={slug}
+                                    />
+                                    {label}
+                                </label>
+                            ),
+                        )
+                    }
+                </fieldset>
+                <fieldset>
+                    <legend>作品平台</legend>
+
+                    {
+                        Object.entries(workPlatformLabels).map(
+                            ([slug, label]) => (
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="platform"
+                                        value={slug}
+                                    />
+                                    {label}
+                                </label>
+                            ),
+                        )
                     }
                 </fieldset>
             </div>
@@ -177,6 +217,7 @@ const tagLabels = Object.fromEntries(
 </style>
 
 <script is:inline type="module">
+
     // 获取页面元素
     const searchInput = document.querySelector("#search-query");
     const searchStatus = document.querySelector("#search-status");
@@ -220,6 +261,8 @@ const tagLabels = Object.fromEntries(
     const selectedTypes = restoreCheckboxGroup("type");
     const selectedCategories = restoreCheckboxGroup("category");
     const selectedWorkTypes = restoreCheckboxGroup("workType");
+    const selectedStatuses = restoreCheckboxGroup("status");
+    const selectedPlatforms = restoreCheckboxGroup("platform");
     const noteTypeInput = document.querySelector("#note-type-filter");
     const noteCategoryPanel = document.querySelector("#note-category-panel");
     const workTypeInput = document.querySelector("#work-type-filter");
@@ -377,6 +420,26 @@ const tagLabels = Object.fromEntries(
                 workBranch.workType = {
                     any: workTypes,
                 };
+            }
+
+            const statuses = [...selectedStatuses];
+
+            if (statuses.length === 1) {
+                workBranch.status = statuses[0];
+            } else if (statuses.length > 1) {
+                workBranch.status = {
+                    any: statuses,
+                };
+            }
+
+            const platforms = [...selectedPlatforms];
+
+            if (platforms.length === 1) {
+                workBranch.platform = platforms[0];
+            } else if (platforms.length > 1) {
+                workBranch.platform = {
+                    any: platforms,
+                }
             }
 
             branches.push(workBranch);
