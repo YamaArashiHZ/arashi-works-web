@@ -149,6 +149,22 @@ const tagLabels = Object.fromEntries(
                 </fieldset>
             </div>
         </fieldset>
+        <fieldset>
+            <legend>通用条件</legend>
+
+            <fieldset>
+                <legend>标签</legend>
+
+                {
+                    Object.entries(tags).map(([slug, tag]) => (
+                        <label>
+                            <input type="checkbox" name="tag" value={slug} />
+                            {tag.name}
+                        </label>
+                    ))
+                }
+            </fieldset>
+        </fieldset>
     </form>
 
     <section
@@ -217,7 +233,6 @@ const tagLabels = Object.fromEntries(
 </style>
 
 <script is:inline type="module">
-
     // 获取页面元素
     const searchInput = document.querySelector("#search-query");
     const searchStatus = document.querySelector("#search-status");
@@ -263,6 +278,8 @@ const tagLabels = Object.fromEntries(
     const selectedWorkTypes = restoreCheckboxGroup("workType");
     const selectedStatuses = restoreCheckboxGroup("status");
     const selectedPlatforms = restoreCheckboxGroup("platform");
+    const selectedTags = restoreCheckboxGroup("tag");
+
     const noteTypeInput = document.querySelector("#note-type-filter");
     const noteCategoryPanel = document.querySelector("#note-category-panel");
     const workTypeInput = document.querySelector("#work-type-filter");
@@ -407,6 +424,17 @@ const tagLabels = Object.fromEntries(
         const branches = [];
         const categories = [...selectedCategories];
 
+        const filters = {};
+        const selectedTagValues = [...selectedTags];
+
+        if (selectedTagValues.length === 1) {
+            filters.tag = selectedTagValues[0];
+        } else if (selectedTagValues.length > 1) {
+            filters.tag ={
+                any: selectedTagValues,
+            }
+        }
+
         if (selectedTypes.has("work")) {
             const workBranch = {
                 type: "work",
@@ -439,7 +467,7 @@ const tagLabels = Object.fromEntries(
             } else if (platforms.length > 1) {
                 workBranch.platform = {
                     any: platforms,
-                }
+                };
             }
 
             branches.push(workBranch);
@@ -461,21 +489,15 @@ const tagLabels = Object.fromEntries(
             branches.push(noteBranch);
         }
 
-        if (branches.length === 0) {
-            return {};
-        }
-
         if (branches.length === 1) {
-            return {
-                filters: branches[0],
-            };
+            Object.assign(filters, branches[0]);
+        } else if (branches.length > 1) {
+            filters.any = branches;
         }
 
-        return {
-            filters: {
-                any: branches,
-            },
-        };
+        return Object.keys(filters).length > 0
+            ? {filters}
+            : {};
     }
 
     function selectExcerpt(result, query) {
@@ -544,7 +566,7 @@ const tagLabels = Object.fromEntries(
 
         const normalizedQuery = query.trim();
 
-        const hasActiveFilters = selectedTypes.size > 0;
+        const hasActiveFilters = selectedTypes.size > 0 || selectedTags.size > 0;
 
         if (normalizedQuery === "" && !hasActiveFilters) {
             setSearchStatus("请输入关键词或选择筛选条件。");
