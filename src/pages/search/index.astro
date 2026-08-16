@@ -27,7 +27,7 @@ const tagLabels = Object.fromEntries(
     <h1>搜索</h1>
     <p>搜索作品、开发记录与技术笔记。</p>
 
-    <form action="/search/" method="get" role="search">
+    <form id="search-form" action="/search/" method="get" role="search">
         <label for="search-query">关键词</label>
         <div class="search-query-control">
             <input
@@ -165,6 +165,8 @@ const tagLabels = Object.fromEntries(
                 }
             </fieldset>
         </fieldset>
+
+        <button id="clear-filters" type="button">清除筛选</button>
     </form>
 
     <section
@@ -175,6 +177,7 @@ const tagLabels = Object.fromEntries(
         data-tag-labels={JSON.stringify(tagLabels)}
     >
         <h2 id="search-results-heading">搜索结果</h2>
+        <p id="search-parameter-notice" hidden></p>
         <p id="search-status">正在加载搜索索引……</p>
         <ul id="search-results"></ul>
     </section>
@@ -240,16 +243,23 @@ const tagLabels = Object.fromEntries(
     const searchSection = document.querySelector(
         '[aria-labelledby="search-results-heading"]',
     );
+    const searchForm = document.querySelector("#search-form");
 
     // 从 URL 恢复关键词与复选框
     const searchParams = new URL(window.location.href).searchParams;
-    const query = searchParams.get("q") ?? "";
+    const ignoredParameters = [];
+    const queryValues = searchParams.getAll("q");
+    const query = queryValues[0] ?? "";
+
+    if (queryValues.length > 1) {
+        ignoredParameters.push("重复的 q");
+    }
 
     if (searchInput instanceof HTMLInputElement) {
         searchInput.value = query;
     }
 
-    function restoreCheckboxGroup(name) {
+    function restoreCheckboxGroup(name, params, ignoredItems) {
         const inputs = document.querySelectorAll(`input[name="${name}"]`);
 
         const validValues = new Set();
@@ -260,8 +270,16 @@ const tagLabels = Object.fromEntries(
             }
         }
 
+        const parameterValues = params.getAll(name);
+
+        for (const value of parameterValues) {
+            if (!validValues.has(value)) {
+                ignoredItems.push(`${name}=${value}`);
+            }
+        }
+
         const selectedValues = new Set(
-            searchParams.getAll(name).filter((value) => validValues.has(value)),
+            parameterValues.filter((value) => validValues.has(value)),
         );
 
         for (const input of inputs) {
@@ -273,17 +291,81 @@ const tagLabels = Object.fromEntries(
         return selectedValues;
     }
 
-    const selectedTypes = restoreCheckboxGroup("type");
-    const selectedCategories = restoreCheckboxGroup("category");
-    const selectedWorkTypes = restoreCheckboxGroup("workType");
-    const selectedStatuses = restoreCheckboxGroup("status");
-    const selectedPlatforms = restoreCheckboxGroup("platform");
-    const selectedTags = restoreCheckboxGroup("tag");
+    function getCheckedValues(name) {
+        const checkedInputs = document.querySelectorAll(
+            `input[name="${name}"]:checked`,
+        );
+
+        const values = [];
+
+        for (const input of checkedInputs) {
+            if (input instanceof HTMLInputElement) {
+                values.push(input.value);
+            }
+        }
+
+        return new Set(values);
+    }
+
+    function getCurrentFilterState() {
+        return {
+            types: getCheckedValues("type"),
+            categories: getCheckedValues("category"),
+            workTypes: getCheckedValues("workType"),
+            statuses: getCheckedValues("status"),
+            platforms: getCheckedValues("platform"),
+            tags: getCheckedValues("tag"),
+        };
+    }
+
+    restoreCheckboxGroup("type", searchParams, ignoredParameters);
+    restoreCheckboxGroup("category", searchParams, ignoredParameters);
+    restoreCheckboxGroup("workType", searchParams, ignoredParameters);
+    restoreCheckboxGroup("status", searchParams, ignoredParameters);
+    restoreCheckboxGroup("platform", searchParams, ignoredParameters);
+    restoreCheckboxGroup("tag", searchParams, ignoredParameters);
 
     const noteTypeInput = document.querySelector("#note-type-filter");
     const noteCategoryPanel = document.querySelector("#note-category-panel");
     const workTypeInput = document.querySelector("#work-type-filter");
     const workFilterPanel = document.querySelector("#work-filter-panel");
+    const parameterNotice = document.querySelector("#search-parameter-notice");
+    const clearFiltersButton = document.querySelector("#clear-filters");
+
+    const knownParameterNames = new Set([
+        "q",
+        "type",
+        "category",
+        "tag",
+        "workType",
+        "status",
+        "platform",
+    ]);
+
+    for (const name of searchParams.keys()) {
+        if (!knownParameterNames.has(name)) {
+            ignoredParameters.push(name);
+        }
+    }
+
+    function updateParameterNotice(ignoredItems) {
+        if (!(parameterNotice instanceof HTMLParagraphElement)) {
+            return;
+        }
+
+        const uniqueItems = [...new Set(ignoredItems)];
+
+        if (uniqueItems.length === 0) {
+            parameterNotice.hidden = true;
+            parameterNotice.textContent = "";
+            return;
+        }
+
+        parameterNotice.hidden = false;
+        parameterNotice.textContent = `已忽略无法识别的搜索参数：${uniqueItems.join("、")}`;
+    }
+
+    updateParameterNotice(ignoredParameters);
 
     function updateWorkFilterPanel() {
         if (
@@ -317,6 +399,23 @@ const tagLabels = Object.fromEntries(
 
     if (noteTypeInput instanceof HTMLInputElement) {
         noteTypeInput.addEventListener("change", updateNoteCategoryPanel);
+    }
+
+    if (clearFiltersButton instanceof HTMLButtonElement) {
+        clearFiltersButton.addEventListener("click", () => {
+            const filterInputs = document.querySelectorAll(
+                'input[type="checkbox"]',
+            );
+
+            for (const input of filterInputs) {
+                if (input instanceof HTMLInputElement) {
+                    input.checked = false;
+                }
+            }
+
+            updateWorkFilterPanel();
+            updateNoteCategoryPanel();
+        });
     }
 
     // 读取 Astro 在 HTML 中提供的中文标签映射
@@ -420,67 +519,69 @@ const tagLabels = Object.fromEntries(
         }
     }
 
-    function createSearchOptions() {
+    function createSearchOptions(filterState) {
+        const { types, categories, workTypes, statuses, platforms, tags } =
+            filterState;
         const branches = [];
-        const categories = [...selectedCategories];
+        const categoryValues = [...categories];
 
         const filters = {};
-        const selectedTagValues = [...selectedTags];
+        const selectedTagValues = [...tags];
 
         if (selectedTagValues.length === 1) {
             filters.tag = selectedTagValues[0];
         } else if (selectedTagValues.length > 1) {
-            filters.tag ={
+            filters.tag = {
                 any: selectedTagValues,
-            }
+            };
         }
 
-        if (selectedTypes.has("work")) {
+        if (types.has("work")) {
             const workBranch = {
                 type: "work",
             };
 
-            const workTypes = [...selectedWorkTypes];
+            const workTypeValues = [...workTypes];
 
-            if (workTypes.length === 1) {
-                workBranch.workType = workTypes[0];
-            } else if (workTypes.length > 1) {
+            if (workTypeValues.length === 1) {
+                workBranch.workType = workTypeValues[0];
+            } else if (workTypeValues.length > 1) {
                 workBranch.workType = {
-                    any: workTypes,
+                    any: workTypeValues,
                 };
             }
 
-            const statuses = [...selectedStatuses];
+            const statusValues = [...statuses];
 
-            if (statuses.length === 1) {
-                workBranch.status = statuses[0];
-            } else if (statuses.length > 1) {
+            if (statusValues.length === 1) {
+                workBranch.status = statusValues[0];
+            } else if (statusValues.length > 1) {
                 workBranch.status = {
-                    any: statuses,
+                    any: statusValues,
                 };
             }
 
-            const platforms = [...selectedPlatforms];
+            const platformValues = [...platforms];
 
-            if (platforms.length === 1) {
-                workBranch.platform = platforms[0];
-            } else if (platforms.length > 1) {
+            if (platformValues.length === 1) {
+                workBranch.platform = platformValues[0];
+            } else if (platformValues.length > 1) {
                 workBranch.platform = {
-                    any: platforms,
+                    any: platformValues,
                 };
             }
 
             branches.push(workBranch);
         }
 
-        if (selectedTypes.has("note")) {
+        if (types.has("note")) {
             const noteBranch = {
                 type: "note",
             };
 
-            if (categories.length === 1) {
-                noteBranch.category = categories[0];
-            } else if (categories.length > 1) {
+            if (categoryValues.length === 1) {
+                noteBranch.category = categoryValues[0];
+            } else if (categoryValues.length > 1) {
                 noteBranch.category = {
                     any: categories,
                 };
@@ -495,9 +596,7 @@ const tagLabels = Object.fromEntries(
             filters.any = branches;
         }
 
-        return Object.keys(filters).length > 0
-            ? {filters}
-            : {};
+        return Object.keys(filters).length > 0 ? { filters } : {};
     }
 
     function selectExcerpt(result, query) {
@@ -558,38 +657,190 @@ const tagLabels = Object.fromEntries(
         return item;
     }
 
+    let latestSearchId = 0;
+
+    async function executeSearch(pagefind, rawQuery, filterState) {
+        const searchId = ++latestSearchId;
+        const normalizedQuery = rawQuery.trim();
+        const hasActiveFilters =
+            filterState.types.size > 0 || filterState.tags.size > 0;
+
+        if (normalizedQuery === "" && !hasActiveFilters) {
+            if (searchResults instanceof HTMLUListElement) {
+                searchResults.replaceChildren();
+            }
+
+            setSearchStatus("请输入关键词或选择筛选条件。");
+            return;
+        }
+
+        const searchQuery = normalizedQuery === "" ? null : normalizedQuery;
+
+        let results;
+
+        try {
+            const search = await pagefind.search(
+                searchQuery,
+                createSearchOptions(filterState),
+            );
+
+            results = await Promise.all(
+                search.results.map((result) => result.data()),
+            );
+        } catch (error) {
+            if (searchId !== latestSearchId) {
+                return;
+            }
+
+            throw error;
+        }
+
+        if (searchId !== latestSearchId) {
+            return;
+        }
+
+        setSearchStatus(`找到 ${results.length} 条结果。`);
+
+        if (searchResults instanceof HTMLUListElement) {
+            const resultFragment = document.createDocumentFragment();
+
+            for (const result of results) {
+                resultFragment.append(
+                    createResultItem(result, normalizedQuery),
+                );
+            }
+
+            searchResults.replaceChildren(resultFragment);
+        }
+    }
+
     try {
         const pagefindPath = "/pagefind/pagefind.js";
         const pagefind = await import(pagefindPath);
 
         await pagefind.init();
 
-        const normalizedQuery = query.trim();
+        const filterState = getCurrentFilterState();
 
-        const hasActiveFilters = selectedTypes.size > 0 || selectedTags.size > 0;
+        await executeSearch(pagefind, query, filterState);
 
-        if (normalizedQuery === "" && !hasActiveFilters) {
-            setSearchStatus("请输入关键词或选择筛选条件。");
-        } else {
-            const searchQuery = normalizedQuery === "" ? null : normalizedQuery;
+        if (searchForm instanceof HTMLFormElement) {
+            searchForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
 
-            const search = await pagefind.search(
-                searchQuery,
-                createSearchOptions(),
-            );
-            const results = await Promise.all(
-                search.results.map((result) => result.data()),
-            );
+                try {
+                    const formData = new FormData(searchForm);
+                    const nextParams = new URLSearchParams();
+                    const submittedQuery =
+                        searchInput instanceof HTMLInputElement
+                            ? searchInput.value.trim()
+                            : "";
 
-            setSearchStatus(`找到 ${results.length} 条结果。`);
+                    if (submittedQuery !== "") {
+                        nextParams.set("q", submittedQuery);
+                    }
 
-            if (searchResults instanceof HTMLUListElement) {
-                for (const result of results) {
-                    searchResults.append(
-                        createResultItem(result, normalizedQuery),
+                    for (const [name, value] of formData.entries()) {
+                        if (name !== "q" && typeof value === "string") {
+                            nextParams.append(name, value);
+                        }
+                    }
+
+                    const nextUrl =
+                        nextParams.size > 0
+                            ? `/search/?${nextParams.toString()}`
+                            : "/search/";
+
+                    window.history.pushState(null, "", nextUrl);
+
+                    if (parameterNotice instanceof HTMLParagraphElement) {
+                        parameterNotice.hidden = true;
+                        parameterNotice.textContent = "";
+                    }
+
+                    setSearchStatus("正在搜索……");
+
+                    await executeSearch(
+                        pagefind,
+                        submittedQuery,
+                        getCurrentFilterState(),
                     );
+                } catch (error) {
+                    console.error("Pagefind 搜索失败：", error);
+                    setSearchStatus("搜索暂时不可用，请稍后再试。");
                 }
-            }
+            });
+
+            window.addEventListener("popstate", async () => {
+                try {
+                    const currentParams = new URL(window.location.href)
+                        .searchParams;
+                    const currentIgnoredParameters = [];
+                    const restoredQueryValues = currentParams.getAll("q");
+                    const restoredQuery = currentParams.getAll("q")[0] ?? "";
+
+                    if (restoredQueryValues.length > 1) {
+                        currentIgnoredParameters.push("重复的 q");
+                    }
+
+                    if (searchInput instanceof HTMLInputElement) {
+                        searchInput.value = restoredQuery;
+                    }
+
+                    restoreCheckboxGroup(
+                        "type",
+                        currentParams,
+                        currentIgnoredParameters,
+                    );
+                    restoreCheckboxGroup(
+                        "category",
+                        currentParams,
+                        currentIgnoredParameters,
+                    );
+                    restoreCheckboxGroup(
+                        "workType",
+                        currentParams,
+                        currentIgnoredParameters,
+                    );
+                    restoreCheckboxGroup(
+                        "status",
+                        currentParams,
+                        currentIgnoredParameters,
+                    );
+                    restoreCheckboxGroup(
+                        "platform",
+                        currentParams,
+                        currentIgnoredParameters,
+                    );
+                    restoreCheckboxGroup(
+                        "tag",
+                        currentParams,
+                        currentIgnoredParameters,
+                    );
+
+                    for (const name of currentParams.keys()) {
+                        if (!knownParameterNames.has(name)) {
+                            currentIgnoredParameters.push(name);
+                        }
+                    }
+
+                    updateParameterNotice(currentIgnoredParameters);
+
+                    updateWorkFilterPanel();
+                    updateNoteCategoryPanel();
+
+                    setSearchStatus("正在搜索……");
+
+                    await executeSearch(
+                        pagefind,
+                        restoredQuery,
+                        getCurrentFilterState(),
+                    );
+                } catch (error) {
+                    console.error("恢复搜索历史失败：", error);
+                    setSearchStatus("搜索暂时不可用，请稍后再试。");
+                }
+            });
         }
     } catch (error) {
         console.error("Pagefind 搜索失败：", error);
