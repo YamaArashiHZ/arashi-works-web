@@ -1,12 +1,111 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { site } from '../data/site';
+import { Picture } from "astro:assets";
+import heroImage from "../assets/images/home/yamagiri-rin-hero.png";
 ---
 
 <BaseLayout
 	title={site.name}
 	description={site.description}
 >
-	<h1>{site.name}</h1>
-	<p>{site.nameZh}</p>
+	<section class="home-hero" aria-labelledby="home-title">
+		<div class="home-hero-content">
+			<h1 id="home-title">{site.name}</h1>
+			<p class="home-brand-zh">{site.nameZh}</p>
+			<p class="home-slogan">{site.slogan}</p>
+
+			<nav class="home-actions" aria-label="首页主要入口">
+				<a href="/works/">浏览作品</a>
+				<a href="/notes/">阅读手记</a>
+			</nav>
+		</div>
+
+		<div class="home-hero-visual" aria-hidden="true">
+			<Picture
+				src={heroImage}
+				formats={["avif", "webp"]}
+				widths={[640, 960, 1440, 1920]}
+				sizes="100vw"
+				alt=""
+				loading="eager"
+				fetchpriority="high"
+			/>
+		</div>
+	</section>
 </BaseLayout>
+
+<style>
+	.home-hero {
+		position: relative;
+		isolation: isolate;
+		min-height: clamp(28rem, 65vh, 42rem);
+		overflow: hidden;
+		border-radius: 1.5rem;
+	}
+
+	.home-hero::after {
+		position: absolute;
+		z-index: 1;
+		inset: 0;
+		background: linear-gradient(
+			90deg,
+			rgb(255 250 252 / 96%) 0%,
+			rgb(255 250 252 / 88%) 22%,
+			rgb(255 250 252 / 58%) 40%,
+			rgb(255 250 252 / 18%) 58%,
+			transparent 72%
+		);
+		content: "";
+		pointer-events: none;
+	}
+
+	.home-hero-content {
+		position: relative;
+		z-index: 2;
+		width: min(32rem, 55%);
+		padding: clamp(2rem, 7vw, 6rem);
+	}
+
+	.home-hero-visual {
+		position: absolute;
+		z-index: 0;
+		inset: 0;
+	}
+
+	.home-hero-visual :global(picture),
+	.home-hero-visual :global(img) {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.home-hero-visual :global(img) {
+		object-fit: cover;
+		object-position: right 20%;
+	}
+
+	@media (max-width: 50rem) {
+		.home-hero::after {
+			background: linear-gradient(
+				180deg,
+				rgb(255 250 252 / 96%) 0%,
+				rgb(255 250 252 / 88%) 38%,
+				rgb(255 250 252 / 35%) 68%,
+				rgb(255 250 252 / 8%) 100%,
+			);
+		}
+
+		.home-hero-content {
+			width: auto;
+			max-width: 28rem;
+			padding: clamp(1.5rem, 7vw, 3rem);
+		}
+	}
+
+	@media (max-width: 28.125rem) {
+		.home-hero {
+			min-height: 20rem;
+		}
+	}
+</style>
