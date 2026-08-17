@@ -10,32 +10,55 @@ const currentPath = Astro.url.pathname;
         <span>{site.nameZh}</span>
     </a>
 
-    <nav aria-label="主导航">
+    <button
+        class="site-nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="site-navigation"
+    >
+        <svg
+            class="site-nav-toggle-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+        >
+            <path class="icon-line icon-line-top" d="M4 12h16"></path>
+            <path class="icon-line icon-line-middle" d="M4 12h16"></path>
+            <path class="icon-line icon-line-bottom" d="M4 12h16"></path>
+        </svg>
+        <span class="visually-hidden">菜单</span>
+    </button>
+
+    <nav id="site-navigation" aria-label="主导航">
         <ul class="site-nav">
             <li>
                 <a
                     href="/"
                     aria-current={currentPath === "/" ? "page" : undefined}
-                    >首页</a>
+                    >首页</a
+                >
             </li>
             <li>
                 <a
                     href="/works/"
                     aria-current={currentPath.startsWith("/works/")
                         ? "page"
-                        : undefined}>作品</a>
+                        : undefined}>作品</a
+                >
             </li>
             <li>
                 <a
                     href="/notes/"
                     aria-current={currentPath.startsWith("/notes/")
                         ? "page"
-                        : undefined}>异造手记</a>
+                        : undefined}>异造手记</a
+                >
             </li>
             <li>
                 <a
                     href="/search/"
-                    aria-current={currentPath.startsWith("/search/") ? "page" : undefined}
+                    aria-current={currentPath.startsWith("/search/")
+                        ? "page"
+                        : undefined}
                 >
                     搜索
                 </a>
@@ -45,11 +68,41 @@ const currentPath = Astro.url.pathname;
                     href="/about/"
                     aria-current={currentPath.startsWith("/about/")
                         ? "page"
-                        : undefined}>关于</a>
+                        : undefined}>关于</a
+                >
             </li>
         </ul>
     </nav>
 </header>
+
+<script>
+    const siteHeader = document.querySelector(".site-header");
+    const navToggle = document.querySelector(".site-nav-toggle");
+
+    if (
+        siteHeader instanceof HTMLElement &&
+        navToggle instanceof HTMLButtonElement
+    ) {
+        siteHeader.dataset.navReady = "";
+
+        navToggle.addEventListener("click", () => {
+            const isExpanded =
+                navToggle.getAttribute("aria-expanded") === "true";
+            navToggle.setAttribute("aria-expanded", String(!isExpanded));
+        });
+
+        document.addEventListener("keydown", (event) => {
+            const isExpanded =
+                navToggle.getAttribute("aria-expanded") === "true";
+
+            if (event.key === "Escape" && isExpanded) {
+                navToggle.setAttribute("aria-expanded", "false");
+                navToggle.focus();
+            }
+        });
+    }
+</script>
+
 <style>
     .site-header {
         display: flex;
@@ -58,6 +111,8 @@ const currentPath = Astro.url.pathname;
         justify-content: space-between;
         gap: 1rem;
         padding: 1rem var(--space-page);
+        position: relative;
+        z-index: 10;
     }
 
     .site-brand {
@@ -65,6 +120,101 @@ const currentPath = Astro.url.pathname;
         flex-direction: column;
         color: inherit;
         text-decoration: none;
+    }
+
+    .site-nav-toggle {
+        display: none;
+    }
+
+    .site-nav-toggle-icon {
+        display: block;
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    .icon-line {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        transform-origin: 12px 12px;
+        transition:
+            transform 180ms ease,
+            opacity 140ms ease;
+    }
+
+    .icon-line-top {
+        transform: translateY(-6px);
+    }
+
+    .icon-line-bottom {
+        transform: translateY(6px);
+    }
+
+    .site-nav-toggle[aria-expanded="true"] .icon-line-top {
+        transform: rotate(-45deg);
+    }
+
+    .site-nav-toggle[aria-expanded="true"] .icon-line-middle {
+        opacity: 0;
+    }
+
+    .site-nav-toggle[aria-expanded="true"] .icon-line-bottom {
+        transform: rotate(45deg);
+    }
+
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    @media (max-width: 50rem) {
+        .site-header[data-nav-ready] .site-nav-toggle {
+            display: block;
+        }
+
+        #site-navigation {
+            position: absolute;
+            z-index: 1;
+            inset-block-start: calc(100% - 0.5rem);
+            inset-inline-end: var(--space-page);
+            width: min(10rem, calc(100% - 2 * var(--space-page)));
+            padding: 1rem;
+            border: 1px solid rgb(87 91 102 / 20%);
+            border-radius: 0.75rem;
+            background: rgb(255 250 252);
+            box-shadow: 0 0.75rem 2rem rgb(87 91 102 / 18%);
+        }
+
+        .site-header[data-nav-ready] #site-navigation {
+            visibility: hidden;
+            opacity: 0;
+            transform: tanslateY(-0.5rem) scale(0.98);
+            transform-origin: top right;
+            pointer-events: none;
+            transition:
+                opacity 180ms ease,
+                transform 180ms ease,
+                visibility 0s linear 180ms;
+        }
+
+        .site-header[data-nav-ready]
+            .site-nav-toggle[aria-expanded="true"]
+            + #site-navigation {
+            visibility: visible;
+            opacity: 1;
+            transform: none;
+            pointer-events: auto;
+            transition-delay: 0s;
+        }
+
+        .site-nav {
+            flex-direction: column;
+        }
     }
 
     .site-nav {
