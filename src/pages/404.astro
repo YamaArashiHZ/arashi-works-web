@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+    title="未找到页面 | Arashi Works"
+    description="请求的页面不存在或已经移动。"
+>
+    <section aria-labelledby="error-title">
+        <p class="error-code" aria-hidden="true">404</p>
+        <h1 id="error-title">这份异造档案似乎不在这里</h1>
+        <p>它可能已经移动、被整理归档，或者从一开始就不存在。</p>
+
+        <nav aria-label="错误页面导航">
+            <a href="/">返回首页</a>
+            <a href="/works/">浏览作品</a>
+            <a href="/notes/">浏览手记</a>
+            <a href="/search/">搜索网站</a>
+        </nav>
+    </section>
+</BaseLayout>
+
+<style>
+    .error-code {
+        margin: 0;
+        font-size: clamp(4rem, 15vw, 8rem);
+        font-weight: 700;
+        line-height: 0.9;
+    }
+</style>
