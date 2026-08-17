@@ -1,14 +1,31 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { site } from '../data/site';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../data/site";
 import { Picture } from "astro:assets";
 import heroImage from "../assets/images/home/yamagiri-rin-hero.png";
+import { getPublishedWorks, getPublishedNotes } from "../lib/content";
+import { estimateReadingMinutes } from "../lib/reading-time";
+import WorkCard from "../components/WorkCard.astro";
+import WorkGrid from "../components/WorkGrid.astro";
+import NoteCard from "../components/NoteCard.astro";
+
+const works = await getPublishedWorks();
+const featuredWorks = works.filter((work) => work.data.featured);
+const notes = await getPublishedNotes();
+
+const recentWorks = [...works]
+	.sort((a, b) => {
+		const aDate = a.data.updatedAt ?? a.data.publishedAt;
+		const bDate = b.data.updatedAt ?? b.data.publishedAt;
+
+		return bDate.getTime() - aDate.getTime();
+	})
+	.slice(0, 3);
+
+const latestNotes = notes.slice(0, 3);
 ---
 
-<BaseLayout
-	title={site.name}
-	description={site.description}
->
+<BaseLayout title={site.name} description={site.description}>
 	<section class="home-hero" aria-labelledby="home-title">
 		<div class="home-hero-content">
 			<h1 id="home-title">{site.name}</h1>
@@ -33,6 +50,109 @@ import heroImage from "../assets/images/home/yamagiri-rin-hero.png";
 			/>
 		</div>
 	</section>
+
+	{
+		featuredWorks.length > 0 && (
+			<section aria-labelledby="featured-works-title">
+				<h2 id="featured-works-title">精选作品</h2>
+				<p>探索 Arashi Works 的软件、游戏与实验项目。</p>
+				<WorkGrid>
+					{featuredWorks.map((work) => (
+						<li>
+							<WorkCard
+								title={work.data.title}
+								summary={work.data.summary}
+								cover={work.data.cover}
+								type={work.data.type}
+								status={work.data.status}
+								updatedAt={work.data.updatedAt}
+								tagSlugs={work.data.tags}
+								href={`/works/${work.id}/`}
+								headingLevel="h3"
+							/>
+						</li>
+					))}
+				</WorkGrid>
+
+				<a href="/works/">浏览全部作品</a>
+			</section>
+		)
+	}
+
+	{recentWorks.length > 0 && (
+		<section aria-labelledby="recent-works-title">
+			<h2 id="recent-works-title">最近更新</h2>
+			<p>查看最近更新或正在开发中的项目。</p>
+
+			<WorkGrid>
+				{recentWorks.map((work) => (
+					<li>
+						<WorkCard
+							title={work.data.title}
+							summary={work.data.summary}
+							cover={work.data.cover}
+							type={work.data.type}
+							status={work.data.status}
+							updatedAt={work.data.updatedAt}
+							tagSlugs={work.data.tags}
+							href={`/works/${work.id}/`}
+							headingLevel="h3"
+						/>
+					</li>
+				))}
+			</WorkGrid>
+
+			<a href="/works/">浏览全部作品</a>
+		</section>
+	)}
+
+	{latestNotes.length > 0 && (
+		<section aria-labelledby="latest-notes-title">
+			<h2 id="latest-notes-title">异造手记</h2>
+			<p>Arashi Works 的开发记录、技术笔记与创作过程。</p>
+
+			<ul class="home-note-list">
+				{latestNotes.map((note) => (
+					<li>
+						<NoteCard
+							title={note.data.title}
+							summary={note.data.summary}
+							category={note.data.category}
+							publishedAt={note.data.publishedAt}
+							updatedAt={note.data.updatedAt}
+							href={`/notes/${note.id}/`}
+							tagSlugs={note.data.tags}
+							readingMinutes={estimateReadingMinutes(note.body ?? "")}
+							headingLevel="h3"
+						/>
+					</li>
+				))}
+			</ul>
+
+			<a href="/notes/">浏览全部手记</a>
+		</section>
+	)}
+
+	<section aria-labelledby="about-studio-title">
+		<h2 id="about-studio-title">关于异造坊</h2>
+		<p>
+			Arashi Works（山嵐异造坊）是记录个人创作与技术探索的空间，收录实用软件、游戏相关项目、自动化工具与开发手记，把兴趣和灵感逐步制作成可以使用、分享和持续改进的作品。
+		</p>
+	</section>
+
+	<nav aria-label="异造坊联系方式">
+		<ul class="studio-links">
+			<li>
+				<a href="https://github.com/YamaArashiHZ" target="_blank">GitHub</a>
+			</li>
+			<li>
+				<a href="https://space.bilibili.com/319279623" target="_blank">B站</a>
+			</li>
+			<li>
+				<span>arashiworks@qq.com</span>
+			</li>
+		</ul>
+	</nav>
 </BaseLayout>
 
 <style>
@@ -92,7 +212,7 @@ import heroImage from "../assets/images/home/yamagiri-rin-hero.png";
 				rgb(255 250 252 / 96%) 0%,
 				rgb(255 250 252 / 88%) 38%,
 				rgb(255 250 252 / 35%) 68%,
-				rgb(255 250 252 / 8%) 100%,
+				rgb(255 250 252 / 8%) 100%
 			);
 		}
 
@@ -107,5 +227,22 @@ import heroImage from "../assets/images/home/yamagiri-rin-hero.png";
 		.home-hero {
 			min-height: 20rem;
 		}
+	}
+
+	.home-note-list {
+		display: grid;
+		gap: 1.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.studio-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
 	}
 </style>

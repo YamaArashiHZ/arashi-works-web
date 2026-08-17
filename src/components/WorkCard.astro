@@ -1,14 +1,14 @@
 ---
-import { Image } from 'astro:assets';
-import type { ImageMetadata } from 'astro';
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
 import {
     workStatusLabels,
     workTypeLabels,
     type WorkStatus,
     type WorkType,
-} from '../data/works';
-import { tags, type TagSlug } from '../data/tags';
-import { formatDateTime } from '../lib/dates';
+} from "../data/works";
+import { tags, type TagSlug } from "../data/tags";
+import { formatDateTime } from "../lib/dates";
 
 interface Props {
     title: string;
@@ -19,39 +19,45 @@ interface Props {
     updatedAt?: Date;
     tagSlugs: TagSlug[];
     href: string;
+    headingLevel?: "h2" | "h3";
 }
 
-const { title, summary, cover, type, status, updatedAt, tagSlugs, href } = Astro.props;
+const {
+    title,
+    summary,
+    cover,
+    type,
+    status,
+    updatedAt,
+    tagSlugs,
+    href,
+    headingLevel = "h2",
+} = Astro.props;
+
+const Heading = headingLevel;
 ---
 
 <article>
-    {cover && (
-        <Image
-            class="work-cover"
-            src={cover}
-            alt=""
-            width={600}
-        />
-    )}
+    {cover && <Image class="work-cover" src={cover} alt="" width={600} />}
     <p class="work-meta">
         <span>{workTypeLabels[type]}</span>
         <span>{workStatusLabels[status]}</span>
     </p>
-    <h2><a href={href}>{title}</a></h2>
+    <Heading><a href={href}>{title}</a></Heading>
     <p>{summary}</p>
     <ul class="work-tags" aria-label="作品标签">
-        {tagSlugs.map((tagSlug) => (
-            <li>{tags[tagSlug].name}</li>
-        ))}
+        {tagSlugs.map((tagSlug) => <li>{tags[tagSlug].name}</li>)}
     </ul>
-    {updatedAt && (
-        <p>
-            更新于{' '}
-            <time datetime={updatedAt.toISOString()}>
-                {formatDateTime(updatedAt)}
-            </time>
-        </p>
-    )}
+    {
+        updatedAt && (
+            <p>
+                更新于{" "}
+                <time datetime={updatedAt.toISOString()}>
+                    {formatDateTime(updatedAt)}
+                </time>
+            </p>
+        )
+    }
 </article>
 
 <style>

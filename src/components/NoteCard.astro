@@ -17,6 +17,7 @@ interface Props {
         title: string;
         href: string;
     };
+    headingLevel?: "h2" | "h3";
 }
 
 const {
@@ -29,12 +30,15 @@ const {
     tagSlugs,
     readingMinutes,
     relatedWork,
+    headingLevel = "h2",
 } = Astro.props;
+
+const Heading = headingLevel;
 ---
 
 <article>
     <p>{noteCategories[category].name}</p>
-    <h2><a href={href}>{title}</a></h2>
+    <Heading><a href={href}>{title}</a></Heading>
     <p>{summary}</p>
     <ul class="note-tags" aria-label="手记标签">
         {tagSlugs.map((tagSlug) => <li>{tags[tagSlug].name}</li>)}
