@@ -1,0 +1,171 @@
+---
+import { Image } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import avatar from "../../assets/images/about/yamaarashi-avatar.png";
+---
+
+<BaseLayout title="关于 | Arashi Works" description="了解山嵐与 Arashi Works。">
+    <section aria-labelledby="about-yamaarashi-title">
+        <h1 id="about-yamaarashi-title">关于山嵐</h1>
+
+        <button
+            id="avatar-easter-egg-trigger"
+            class="avatar-easter-egg-trigger"
+            type="button"
+            aria-controls="special-thanks"
+            aria-expanded="false"
+        >
+            <Image
+                class="about-avatar"
+                src={avatar}
+                alt="山嵐的头像"
+                width={240}
+            />
+        </button>
+
+        <p id="special-thanks" aria-live="polite" hidden>
+            特别感谢 Sea5er 一直以来的陪伴、鼓励与支持。
+        </p>
+
+        <p>
+            喜欢二次元动画、插画和音乐，什么游戏都玩，最喜欢《Minecraft》，偶尔翻译漫画，平时随心所欲，想到什么就做什么。
+        </p>
+    </section>
+
+    <section aria-labelledby="about-brand-title">
+        <h2 id="about-brand-title">关于 Arashi Works</h2>
+
+        <p>
+            “山嵐”源自我的绰号“豪猪”：从翻译为日语「ヤマアラシ」（YamaArashi）出发，取其同音汉字写作“山嵐”。
+            Arashi Works
+            是暂时只有我一个人的工作室。“异造”代表不拘一格、随心而作。这里不追求固定方向，希望以有我的特色的方式，把各种想法慢慢做成作品。
+        </p>
+    </section>
+
+    <section aria-labelledby="about-rin-title">
+        <h2 id="about-rin-title">关于山雾铃</h2>
+        <p>
+            山雾铃「山霧りん」(Yamagiri
+            Rin)是山嵐异造坊的看板娘，也是一位温柔活泼的猫娘。她会在网站中协助整理异造档案，并陪伴访客探索这里的作品与手记。
+        </p>
+
+        <a href="/about/yamagiri-rin/">了解小铃</a>
+    </section>
+
+    <section aria-labelledby="contact-title">
+        <h2 id="contact-title">联系与关注</h2>
+
+        <ul>
+            <li>
+                <a
+                    href="https://github.com/YamaArashiHZ"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    GitHub
+                </a>
+            </li>
+            <li>
+                <a
+                    href="https://space.bilibili.com/319279623"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    B站
+                </a>
+            </li>
+            <li>邮箱：arashiworks@qq.com</li>
+        </ul>
+    </section>
+
+    <section aria-labelledby="technology-title">
+        <h2 id="technology-title">使用技术</h2>
+
+        <p>
+            本站使用 Astro 与 TypeScript 构建，通过 Markdown
+            内容集合管理作品和异造手记，界面使用原生 CSS 编写，并由 Pagefind
+            提供静态站内搜索。
+        </p>
+    </section>
+
+    <section aria-labelledby="acknowledgements-title">
+        <h2 id="acknowledgements-title">鸣谢</h2>
+
+        <p>
+            感谢 Astro、TypeScript、Pagefind、OpenCode 和 DeepSeek Harness
+            等开源项目，为本站的开发提供支持。
+        </p>
+        <p>
+            本站在策划与开发过程中使用了 DeepSeek 和 OpenAI 提供的 AI
+            工具进行辅助，最终设计、内容与代码由山嵐审查和确认。
+        </p>
+    </section>
+
+    <section aria-labelledby="copyright-title">
+        <h2 id="copyright-title">版权说明</h2>
+
+        <p>
+            山雾铃的角色设定与角色素材由山嵐原创并保留版权，允许非商业分享和非商业二次创作，使用时须署名“山嵐”并注明原始来源；未经另行授权不得用于商业用途。
+        </p>
+
+        <p>
+            网站代码、文章、软件以及下载内容的许可和版权，以对应页面或项目仓库中的声明为准。
+        </p>
+    </section>
+</BaseLayout>
+
+<script>
+    const trigger = document.querySelector<HTMLButtonElement>(
+        "#avatar-easter-egg-trigger",
+    );
+    const message = document.querySelector<HTMLElement>("#special-thanks");
+
+    if (trigger && message) {
+        let clickCount = 0;
+        let previousClickAt = 0;
+        const maximumInterval = 1500;
+
+        trigger.addEventListener("click", () => {
+            if (!message.hidden) return;
+
+            const currentClickAt = Date.now();
+
+            clickCount =
+                currentClickAt - previousClickAt <= maximumInterval
+                    ? clickCount + 1
+                    : 1;
+
+            previousClickAt = currentClickAt;
+
+            if (clickCount >= 5) {
+                message.hidden = false;
+                trigger.setAttribute("aria-expanded", "true");
+            }
+        });
+    }
+</script>
+
+<style>
+    .about-avatar {
+        --avatar-size: clamp(7rem, 20vw, 10rem);
+        display: block;
+        width: var(--avatar-size);
+        height: var(--avatar-size);
+        object-fit: cover;
+        border: 0.25rem solid rgb(255 250 252);
+        border-radius: 50%;
+    }
+
+    .avatar-easter-egg-trigger {
+        display: block;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: none;
+    }
+
+    .avatar-easter-egg-trigger:focus-visible {
+        outline: 0.2rem solid currentColor;
+        outline-offset: 0.2rem;
+    }
+</style>
