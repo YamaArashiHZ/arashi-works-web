@@ -27,7 +27,7 @@ Arashi Works 是山嵐的个人创作网站，用于集中展示和记录：
 | 英文主品牌 | Arashi Works |
 | 中文副品牌 | 山嵐异造坊 |
 | 网站仓库名 | `arashi-works-web` |
-| 项目根目录 | `D:\OpenCode\arashi-works-web` |
+| 项目根目录 | `D:\DeepSeekHarness\arashi-works-web` |
 | 视觉方向 | 日式二次元“幻想异造部” |
 | 原创角色 | 山雾铃 / 山霧りん / Yamagiri Rin，山嵐异造坊看板娘 |
 | 角色展示服装 | 白色吊带裙与樱花粉针织开衫 |
