@@ -1,0 +1,42 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { tags, type TagSlug } from "../../data/tags";
+import { getPublishedNotes, getPublishedWorks } from "../../lib/content";
+import { countContentByTag } from "../../lib/tags";
+
+const [works, notes] = await Promise.all([
+    getPublishedWorks(),
+    getPublishedNotes(),
+]);
+
+const tagEntries = (Object.keys(tags) as TagSlug[]).map((slug) => ({
+    slug,
+    tag: tags[slug],
+    count: countContentByTag(slug, [works, notes]),
+}));
+---
+
+<BaseLayout
+    title="标签总览 | Arashi Works"
+    description="浏览 Arashi Works 作品与手记使用的内容标签。"
+>
+    <h1>标签总览</h1>
+    <p>通过标签查找相关作品与手记。</p>
+    <ul>
+        {
+            tagEntries.map(({ slug, tag, count }) => (
+                <li>
+                    <h2>
+                        <a href={`/search/?tag=${encodeURIComponent(slug)}`}>
+                            {tag.name}
+                        </a>
+                    </h2>
+                    <p>{count} 项公开内容</p>
+
+                    {"description" in tag && <p>{tag.description}</p>}
+                </li>
+            ))
+        }
+    </ul>
+    <a href="/search/">前往搜索</a>
+</BaseLayout>
