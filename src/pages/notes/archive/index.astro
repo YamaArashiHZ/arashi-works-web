@@ -1,0 +1,73 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getPublishedNotes } from "../../../lib/content";
+import { formatDateTime, getYearMonth } from "../../../lib/dates";
+
+const notes = await getPublishedNotes();
+
+type Note = (typeof notes)[number];
+
+const archiveGroups = new Map<string, Map<String, Note[]>>();
+
+for (const note of notes) {
+    const { year, month } = getYearMonth(note.data.publishedAt);
+
+    const yearGroup = archiveGroups.get(year) ?? new Map<string, Note[]>();
+    const monthGroup = yearGroup.get(month) ?? [];
+
+    monthGroup.push(note);
+    yearGroup.set(month, monthGroup);
+    archiveGroups.set(year, yearGroup);
+}
+---
+
+<BaseLayout
+    title="手记归档 | Arashi Works"
+    description="按年份和月份浏览 Arashi Works 的公开异造手记。"
+>
+    <h1>手记归档</h1>
+    <p>按发布时间浏览全部公开异造手记。</p>
+
+    {
+        notes.length > 0 ? (
+            <div>
+                {Array.from(archiveGroups).map(([year, months]) => (
+                    <section aria-labelledby={`archive-year-${year}`}>
+                        <h2 id={`archive-year-${year}`}>{year} 年</h2>
+
+                        {Array.from(months).map(([month, monthNotes]) => (
+                            <section
+                                aria-labelledby={`archive-month--${year}-${month}`}
+                            >
+                                <h3 id={`archive-month-${year}-${month}`}>
+                                    {month} 月
+                                </h3>
+
+                                <ul>
+                                    {monthNotes.map((note) => (
+                                        <li>
+                                            <time
+                                                datetime={note.data.publishedAt.toISOString()}
+                                            >
+                                                {formatDateTime(
+                                                    note.data.publishedAt,
+                                                )}
+                                            </time>{" "}
+                                            <a href={`/notes/${note.id}/`}>
+                                                {note.data.title}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        ))}
+                    </section>
+                ))}
+            </div>
+        ) : (
+            <p>暂时没有公开手记。</p>
+        )
+    }
+
+    <a href="/notes/">返回异造手记</a>
+</BaseLayout>

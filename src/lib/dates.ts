@@ -17,3 +17,22 @@ export function formatDateTime(date: Date) {
 
     return `${parts.year}/${parts.month}/${parts.day} ${parts.hour}:${parts.minute}`;
 }
+
+const yearMonthFormatter = new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "numeric",
+    timeZone: "Asia/Shanghai",
+});
+
+export function getYearMonth(date: Date) {
+    const parts = Object.fromEntries(
+        yearMonthFormatter
+            .formatToParts(date)
+            .map(({ type, value }) => [type, value]),
+    );
+
+    return {
+        year: parts.year,
+        month: parts.month,
+    };
+}
