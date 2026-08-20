@@ -16,6 +16,17 @@ const { title, description } = Astro.props;
 <html lang="zh-CN">
     <head>
         <meta charset="utf-8" />
+        <script is:inline>
+            try {
+                const savedTheme = localStorage.getItem("arashi-works-theme");
+
+                if (savedTheme === "light" || savedTheme === "dark") {
+                    document.documentElement.dataset.theme = savedTheme;
+                }
+            } catch {
+                // 本地存储不可用时，保留 CSS 的系统主题回退。
+            }
+        </script>
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
         <meta name="description" content={description} />

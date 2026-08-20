@@ -79,74 +79,85 @@ const latestNotes = notes.slice(0, 3);
 		)
 	}
 
-	{recentWorks.length > 0 && (
-		<section aria-labelledby="recent-works-title">
-			<h2 id="recent-works-title">最近更新</h2>
-			<p>查看最近更新或正在开发中的项目。</p>
+	{
+		recentWorks.length > 0 && (
+			<section aria-labelledby="recent-works-title">
+				<h2 id="recent-works-title">最近更新</h2>
+				<p>查看最近更新或正在开发中的项目。</p>
 
-			<WorkGrid>
-				{recentWorks.map((work) => (
-					<li>
-						<WorkCard
-							title={work.data.title}
-							summary={work.data.summary}
-							cover={work.data.cover}
-							type={work.data.type}
-							status={work.data.status}
-							updatedAt={work.data.updatedAt}
-							tagSlugs={work.data.tags}
-							href={`/works/${work.id}/`}
-							headingLevel="h3"
-						/>
-					</li>
-				))}
-			</WorkGrid>
+				<WorkGrid>
+					{recentWorks.map((work) => (
+						<li>
+							<WorkCard
+								title={work.data.title}
+								summary={work.data.summary}
+								cover={work.data.cover}
+								type={work.data.type}
+								status={work.data.status}
+								updatedAt={work.data.updatedAt}
+								tagSlugs={work.data.tags}
+								href={`/works/${work.id}/`}
+								headingLevel="h3"
+							/>
+						</li>
+					))}
+				</WorkGrid>
 
-			<a href="/works/">浏览全部作品</a>
-		</section>
-	)}
+				<a href="/works/">浏览全部作品</a>
+			</section>
+		)
+	}
 
-	{latestNotes.length > 0 && (
-		<section aria-labelledby="latest-notes-title">
-			<h2 id="latest-notes-title">异造手记</h2>
-			<p>Arashi Works 的开发记录、技术笔记与创作过程。</p>
+	{
+		latestNotes.length > 0 && (
+			<section aria-labelledby="latest-notes-title">
+				<h2 id="latest-notes-title">异造手记</h2>
+				<p>Arashi Works 的开发记录、技术笔记与创作过程。</p>
 
-			<ul class="home-note-list">
-				{latestNotes.map((note) => (
-					<li>
-						<NoteCard
-							title={note.data.title}
-							summary={note.data.summary}
-							category={note.data.category}
-							publishedAt={note.data.publishedAt}
-							updatedAt={note.data.updatedAt}
-							href={`/notes/${note.id}/`}
-							tagSlugs={note.data.tags}
-							readingMinutes={estimateReadingMinutes(note.body ?? "")}
-							headingLevel="h3"
-						/>
-					</li>
-				))}
-			</ul>
+				<ul class="home-note-list">
+					{latestNotes.map((note) => (
+						<li>
+							<NoteCard
+								title={note.data.title}
+								summary={note.data.summary}
+								category={note.data.category}
+								publishedAt={note.data.publishedAt}
+								updatedAt={note.data.updatedAt}
+								href={`/notes/${note.id}/`}
+								tagSlugs={note.data.tags}
+								readingMinutes={estimateReadingMinutes(
+									note.body ?? "",
+								)}
+								headingLevel="h3"
+							/>
+						</li>
+					))}
+				</ul>
 
-			<a href="/notes/">浏览全部手记</a>
-		</section>
-	)}
+				<a href="/notes/">浏览全部手记</a>
+			</section>
+		)
+	}
 
 	<section aria-labelledby="about-studio-title">
 		<h2 id="about-studio-title">关于异造坊</h2>
 		<p>
-			Arashi Works（山嵐异造坊）是记录个人创作与技术探索的空间，收录实用软件、游戏相关项目、自动化工具与开发手记，把兴趣和灵感逐步制作成可以使用、分享和持续改进的作品。
+			Arashi
+			Works（山嵐异造坊）是记录个人创作与技术探索的空间，收录实用软件、游戏相关项目、自动化工具与开发手记，把兴趣和灵感逐步制作成可以使用、分享和持续改进的作品。
 		</p>
 	</section>
 
 	<nav aria-label="异造坊联系方式">
 		<ul class="studio-links">
 			<li>
-				<a href="https://github.com/YamaArashiHZ" target="_blank">GitHub</a>
+				<a href="https://github.com/YamaArashiHZ" target="_blank"
+					>GitHub</a
+				>
 			</li>
 			<li>
-				<a href="https://space.bilibili.com/319279623" target="_blank">B站</a>
+				<a href="https://space.bilibili.com/319279623" target="_blank"
+					>B站</a
+				>
 			</li>
 			<li>
 				<span>arashiworks@qq.com</span>
@@ -170,10 +181,10 @@ const latestNotes = notes.slice(0, 3);
 		inset: 0;
 		background: linear-gradient(
 			90deg,
-			rgb(255 250 252 / 96%) 0%,
-			rgb(255 250 252 / 88%) 22%,
-			rgb(255 250 252 / 58%) 40%,
-			rgb(255 250 252 / 18%) 58%,
+			rgb(var(--hero-overlay-rgb) / 96%) 0%,
+			rgb(var(--hero-overlay-rgb) / 88%) 22%,
+			rgb(var(--hero-overlay-rgb) / 58%) 40%,
+			rgb(var(--hero-overlay-rgb) / 18%) 58%,
 			transparent 72%
 		);
 		content: "";
@@ -206,16 +217,6 @@ const latestNotes = notes.slice(0, 3);
 	}
 
 	@media (max-width: 50rem) {
-		.home-hero::after {
-			background: linear-gradient(
-				180deg,
-				rgb(255 250 252 / 96%) 0%,
-				rgb(255 250 252 / 88%) 38%,
-				rgb(255 250 252 / 35%) 68%,
-				rgb(255 250 252 / 8%) 100%
-			);
-		}
-
 		.home-hero-content {
 			width: auto;
 			max-width: 28rem;

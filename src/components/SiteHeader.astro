@@ -1,5 +1,6 @@
 ---
 import { site } from "../data/site";
+import ThemeToggle from "./ThemeToggle.astro";
 
 const currentPath = Astro.url.pathname;
 ---
@@ -9,6 +10,8 @@ const currentPath = Astro.url.pathname;
         <strong>{site.name}</strong>
         <span>{site.nameZh}</span>
     </a>
+
+    <ThemeToggle />
 
     <button
         class="site-nav-toggle"
@@ -78,6 +81,7 @@ const currentPath = Astro.url.pathname;
 <script>
     const siteHeader = document.querySelector(".site-header");
     const navToggle = document.querySelector(".site-nav-toggle");
+    const mobileNavigationQuery = window.matchMedia("(max-width: 50rem)");
 
     if (
         siteHeader instanceof HTMLElement &&
@@ -86,6 +90,8 @@ const currentPath = Astro.url.pathname;
         siteHeader.dataset.navReady = "";
 
         navToggle.addEventListener("click", () => {
+            siteHeader.dataset.navAnimated = "";
+
             const isExpanded =
                 navToggle.getAttribute("aria-expanded") === "true";
             navToggle.setAttribute("aria-expanded", String(!isExpanded));
@@ -99,6 +105,11 @@ const currentPath = Astro.url.pathname;
                 navToggle.setAttribute("aria-expanded", "false");
                 navToggle.focus();
             }
+        });
+
+        mobileNavigationQuery.addEventListener("change", () => {
+            navToggle.setAttribute("aria-expanded", "false");
+            delete siteHeader.dataset.navAnimated;
         });
     }
 </script>
@@ -184,18 +195,21 @@ const currentPath = Astro.url.pathname;
             inset-inline-end: var(--space-page);
             width: min(10rem, calc(100% - 2 * var(--space-page)));
             padding: 1rem;
-            border: 1px solid rgb(87 91 102 / 20%);
+            border: 1px solid var(--color-border);
             border-radius: 0.75rem;
-            background: rgb(255 250 252);
-            box-shadow: 0 0.75rem 2rem rgb(87 91 102 / 18%);
+            background: var(--color-surface-raised);
+            box-shadow: 0 0.75rem 2rem var(--color-shadow);
         }
 
         .site-header[data-nav-ready] #site-navigation {
             visibility: hidden;
             opacity: 0;
-            transform: tanslateY(-0.5rem) scale(0.98);
+            transform: translateY(-0.5rem) scale(0.98);
             transform-origin: top right;
             pointer-events: none;
+        }
+
+        .site-header[data-nav-ready][data-nav-animated] #site-navigation {
             transition:
                 opacity 180ms ease,
                 transform 180ms ease,
