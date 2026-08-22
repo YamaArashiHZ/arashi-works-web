@@ -72,15 +72,31 @@ test("本地存储不可用时主题功能安全降级", async ({ page }) => {
     });
 
     await page.addInitScript(() => {
-        Object.defineProperty(window, "localStorage", {
-            configurable: true,
-            get() {
+        const storageKey = "arashi-works-theme";
+        const originalGetItem = Storage.prototype.getItem;
+        const originalSetItem = Storage.prototype.setItem;
+
+        Storage.prototype.getItem = function (key) {
+            if (this === window.localStorage && key === storageKey) {
                 throw new DOMException(
                     "localStorage unavailable",
                     "SecurityError",
                 );
-            },
-        });
+            }
+
+            return originalGetItem.call(this, key);
+        };
+
+        Storage.prototype.setItem = function (key, value) {
+            if (this === window.localStorage && key === storageKey) {
+                throw new DOMException(
+                    "localStorage unavailable",
+                    "SecurityError",
+                );
+            }
+
+            originalSetItem.call(this, key, value);
+        };
     });
 
     await page.goto("/");
