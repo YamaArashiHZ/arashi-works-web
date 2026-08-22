@@ -35,3 +35,38 @@ test('可以从作品列表进入 PixBox 详情页', async ({ page }) => {
         page.getByRole('link', { name: '返回作品列表' }),
     ).toHaveAttribute('href', '/works/');
 });
+
+test('模组作品显示正确类型和关联手记', async ({ page }) => {
+    await page.goto('/works/ftb-solo-quests/');
+
+    await expect(
+        page.getByRole('heading', {
+            level: 1,
+            name: 'FTB Solo Quests',
+        }),
+    ).toBeVisible();
+
+    await expect(page.locator('main h1')).toHaveCount(1);
+
+    const workMetadata = page.locator('.work-meta');
+
+    await expect(
+        workMetadata.getByText('模组', { exact: true }),
+    ).toBeVisible();
+
+    const relatedNote = page.getByRole('link', {
+        name: 'FTB Solo Quests v1.1.2 开发日志',
+    });
+
+    await expect(relatedNote).toHaveAttribute(
+        'href',
+        '/notes/ftb-solo-quests-devlog/',
+    );
+
+    await relatedNote.click();
+
+    await expect(page).toHaveURL(
+        '/notes/ftb-solo-quests-devlog/',
+    );
+    await expect(page.locator('main h1')).toHaveCount(1);
+});
