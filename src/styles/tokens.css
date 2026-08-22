@@ -13,6 +13,8 @@
     --line-height-body: 1.7;
     --line-height-heading: 1.3;
     --space-page: 1.5rem;
+    --space-flow: 0.75rem;
+    --space-section: clamp(1.5rem, 1.25rem + 1vw, 2rem);
 
     color-scheme: light;
     --color-background: #f7f7f8;

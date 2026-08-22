@@ -28,6 +28,18 @@ h3 {
     font-size: var(--font-size-heading-3);
 }
 
+:where(main, article, section, header) > * {
+    margin-block: 0;
+}
+
+:where(main, article, section, header) > * + * {
+    margin-block-start: var(--space-flow);
+}
+
+:where(main, article) > * + section {
+    margin-block-start: var(--space-section);
+}
+
 main {
     padding: var(--space-page);
 }
