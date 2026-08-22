@@ -4,7 +4,7 @@ summary: 记录 PixBox 从需求设计、桌面端交互实现到自动发布的
 draft: false
 category: devlog
 tags:
-    - tools
+    - utility
 featured: false
 work: pixbox
 publishedAt: "2026-08-13T11:42:01+08:00"

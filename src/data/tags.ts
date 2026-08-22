@@ -11,9 +11,13 @@ export const tags = {
     'schema-test': {
         name: 'Schema Test',
     },
-    'tools': {
-        name: '工具',
-        description: '日常便利软件、程序与相关内容',
+    'minecraft': {
+        name: 'Minecraft',
+        description: '我的世界相关内容',
+    },
+    'utility': {
+        name: '实用工具',
+        description: '提升效率、实用性或日常便利的工具',
     },
 } satisfies Record<string, TagDefinition>;
 
