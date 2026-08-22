@@ -9,6 +9,23 @@ body {
     min-height: 100vh;
     display: grid;
     grid-template-rows: auto 1fr auto;
+    font-size: var(--font-size-body);
+}
+
+:where(h1, h2, h3) {
+    line-height: var(--line-height-heading);
+}
+
+h1 {
+    font-size: var(--font-size-heading-1);
+}
+
+h2 {
+    font-size: var(--font-size-heading-2);
+}
+
+h3 {
+    font-size: var(--font-size-heading-3);
 }
 
 main {
