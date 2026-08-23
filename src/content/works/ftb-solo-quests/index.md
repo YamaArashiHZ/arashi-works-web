@@ -6,6 +6,7 @@ status: maintained
 draft: false
 featured: true
 publishedAt: "2026-08-21T00:30:30+08:00"
+updatedAt: "2026-08-21T00:30:30+08:00"
 tags:
     - minecraft
     - utility
