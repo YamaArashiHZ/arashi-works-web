@@ -1,8 +1,9 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { site } from "../data/site";
-import { Picture } from "astro:assets";
+import { Image, Picture } from "astro:assets";
 import heroImage from "../assets/images/home/yamagiri-rin-hero.png";
+import rinProfileImage from "../assets/images/home/yamagiri-rin-profile.png";
 import { getPublishedWorks, getPublishedNotes } from "../lib/content";
 import { estimateReadingMinutes } from "../lib/reading-time";
 import WorkCard from "../components/WorkCard.astro";
@@ -30,10 +31,10 @@ const latestNotes = notes.slice(0, 3);
 const popularTags = (Object.keys(tags) as TagSlug[])
 	.map((slug) => ({
 		slug,
-		name:tags[slug].name,
+		name: tags[slug].name,
 		count: countContentByTag(slug, [works, notes]),
 	}))
-	.filter(({count}) => count > 0)
+	.filter(({ count }) => count > 0)
 	.sort((a, b) => b.count - a.count)
 	.slice(0, 5);
 
@@ -189,9 +190,20 @@ const archiveSummary = Array.from(
 		</div>
 
 		<aside class="home-sidebar" aria-label="首页辅助信息">
-			<section aria-labelledby="home-rin-title">
-				<h2 id="home-rin-title">山雾铃</h2>
-				<p>认识山嵐异造坊的看板娘。</p>
+			<section class="home-rin-card" aria-labelledby="home-rin-title">
+				<Image
+					class="home-rin-profile"
+					src={rinProfileImage}
+					alt="山雾铃头像"
+					width={192}
+					height={192}
+				/>
+				<header class="home-rin-names">
+					<h2 id="home-rin-title">山雾铃</h2>
+					<p lang="ja">山霧りん</p>
+					<p lang="en">Yamagiri Rin</p>
+				</header>
+				<p>山嵐异造坊的看板娘，山嵐的妹妹。</p>
 				<a href="/about/yamagiri-rin/">查看角色资料</a>
 			</section>
 
@@ -202,12 +214,18 @@ const archiveSummary = Array.from(
 						<ul class="home-popular-tags">
 							{popularTags.map(({ slug, name, count }) => (
 								<li>
-									<a href={`/search/?tag=${encodeURIComponent(slug)}`}>
+									<a
+										href={`/search/?tag=${encodeURIComponent(slug)}`}
+									>
 										<span>{name}</span>
-										<span aria-label={`${count} 项公开内容`}>{count}</span>
+										<span
+											aria-label={`${count} 项公开内容`}
+										>
+											{count}
+										</span>
 									</a>
 								</li>
-							))}	
+							))}
 						</ul>
 					) : (
 						<p>暂时没有公开标签。</p>
@@ -218,14 +236,18 @@ const archiveSummary = Array.from(
 
 			<section aria-labelledby="home-archive-title">
 				<h2 id="home-archive-title">手记归档</h2>
-				
+
 				{
 					archiveSummary.length > 0 ? (
 						<ul class="home-archive-summary">
-							{archiveSummary.map(({ year, month, count}) => (
+							{archiveSummary.map(({ year, month, count }) => (
 								<li>
-									<a href={`/notes/archive/#archive-month-${year}-${month}`}>
-										<span>{year} 年 {month} 月</span>
+									<a
+										href={`/notes/archive/#archive-month-${year}-${month}`}
+									>
+										<span>
+											{year} 年 {month} 月
+										</span>
 										<span>{count} 篇</span>
 									</a>
 								</li>
@@ -290,6 +312,34 @@ const archiveSummary = Array.from(
 		border-radius: 0.75rem;
 		background: var(--color-surface-raised);
 		box-shadow: 0 0.5rem 1.25rem var(--color-border);
+	}
+
+	.home-rin-card {
+		text-align: center;
+	}
+
+	.home-rin-profile {
+		display: block;
+		width: clamp(6rem, 50%, 15rem);
+		height: auto;
+		margin-inline: auto;
+		border: 0.2rem solid var(--color-border);
+		border-radius: 50%;
+		object-fit: cover;
+		aspect-ratio: 1;
+	}
+
+	.home-rin-names {
+		display: grid;
+		gap: 0.125rem;
+	}
+
+	.home-rin-names > * {
+		margin: 0;
+	}
+
+	.home-rin-names p {
+		font-size: var(--font-size-small);
 	}
 
 	.home-popular-tags,
