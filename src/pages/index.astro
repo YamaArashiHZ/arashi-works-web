@@ -8,6 +8,9 @@ import { estimateReadingMinutes } from "../lib/reading-time";
 import WorkCard from "../components/WorkCard.astro";
 import WorkGrid from "../components/WorkGrid.astro";
 import NoteCard from "../components/NoteCard.astro";
+import { tags, type TagSlug } from "../data/tags";
+import { countContentByTag } from "../lib/tags";
+import { getYearMonth } from "../lib/dates";
 
 const works = await getPublishedWorks();
 const featuredWorks = works.filter((work) => work.data.featured);
@@ -23,127 +26,219 @@ const recentWorks = [...works]
 	.slice(0, 3);
 
 const latestNotes = notes.slice(0, 3);
+
+const popularTags = (Object.keys(tags) as TagSlug[])
+	.map((slug) => ({
+		slug,
+		name:tags[slug].name,
+		count: countContentByTag(slug, [works, notes]),
+	}))
+	.filter(({count}) => count > 0)
+	.sort((a, b) => b.count - a.count)
+	.slice(0, 5);
+
+interface ArchiveSummaryItem {
+	year: string;
+	month: string;
+	count: number;
+}
+
+const archiveSummary = Array.from(
+	notes.reduce((groups, note) => {
+		const { year, month } = getYearMonth(note.data.publishedAt);
+		const key = `${year}-${month}`;
+		const existingGroup = groups.get(key);
+
+		if (existingGroup) {
+			existingGroup.count += 1;
+		} else {
+			groups.set(key, {
+				year,
+				month,
+				count: 1,
+			});
+		}
+
+		return groups;
+	}, new Map<string, ArchiveSummaryItem>()),
+	([, group]) => group,
+).slice(0, 5);
 ---
 
 <BaseLayout title={site.name} description={site.description}>
-	<section class="home-hero" aria-labelledby="home-title">
-		<div class="home-hero-content">
-			<h1 id="home-title">{site.name}</h1>
-			<p class="home-brand-zh">{site.nameZh}</p>
-			<p class="home-slogan" aria-label={site.slogan}>
+	<div class="home-layout">
+		<div class="home-main">
+			<section class="home-hero" aria-labelledby="home-title">
+				<div class="home-hero-content">
+					<h1 id="home-title">{site.name}</h1>
+					<p class="home-brand-zh">{site.nameZh}</p>
+					<p class="home-slogan" aria-label={site.slogan}>
+						{
+							site.sloganLines.map((line) => (
+								<span aria-hidden="true">{line}</span>
+							))
+						}
+					</p>
+
+					<nav class="home-actions" aria-label="首页主要入口">
+						<a href="/works/">浏览作品</a>
+						<a href="/notes/">阅读手记</a>
+					</nav>
+				</div>
+
+				<div class="home-hero-visual" aria-hidden="true">
+					<Picture
+						src={heroImage}
+						formats={["avif", "webp"]}
+						widths={[640, 960, 1440, 1920]}
+						sizes="100vw"
+						alt=""
+						loading="eager"
+						fetchpriority="high"
+					/>
+				</div>
+			</section>
+
+			{
+				featuredWorks.length > 0 && (
+					<section aria-labelledby="featured-works-title">
+						<h2 id="featured-works-title">精选作品</h2>
+						<p>探索 Arashi Works 的软件、游戏、模组与实验项目。</p>
+						<WorkGrid>
+							{featuredWorks.map((work) => (
+								<li>
+									<WorkCard
+										title={work.data.title}
+										summary={work.data.summary}
+										cover={work.data.cover}
+										type={work.data.type}
+										status={work.data.status}
+										updatedAt={work.data.updatedAt}
+										tagSlugs={work.data.tags}
+										href={`/works/${work.id}/`}
+										headingLevel="h3"
+									/>
+								</li>
+							))}
+						</WorkGrid>
+
+						<a href="/works/">浏览全部作品</a>
+					</section>
+				)
+			}
+
+			{
+				recentWorks.length > 0 && (
+					<section aria-labelledby="recent-works-title">
+						<h2 id="recent-works-title">最近更新</h2>
+						<p>查看最近更新或正在开发中的项目。</p>
+
+						<WorkGrid>
+							{recentWorks.map((work) => (
+								<li>
+									<WorkCard
+										title={work.data.title}
+										summary={work.data.summary}
+										cover={work.data.cover}
+										type={work.data.type}
+										status={work.data.status}
+										updatedAt={work.data.updatedAt}
+										tagSlugs={work.data.tags}
+										href={`/works/${work.id}/`}
+										headingLevel="h3"
+									/>
+								</li>
+							))}
+						</WorkGrid>
+
+						<a href="/works/">浏览全部作品</a>
+					</section>
+				)
+			}
+
+			{
+				latestNotes.length > 0 && (
+					<section aria-labelledby="latest-notes-title">
+						<h2 id="latest-notes-title">异造手记</h2>
+						<p>Arashi Works 的开发记录、技术笔记与创作过程。</p>
+
+						<ul class="home-note-list">
+							{latestNotes.map((note) => (
+								<li>
+									<NoteCard
+										title={note.data.title}
+										summary={note.data.summary}
+										category={note.data.category}
+										publishedAt={note.data.publishedAt}
+										updatedAt={note.data.updatedAt}
+										href={`/notes/${note.id}/`}
+										tagSlugs={note.data.tags}
+										readingMinutes={estimateReadingMinutes(
+											note.body ?? "",
+										)}
+										headingLevel="h3"
+									/>
+								</li>
+							))}
+						</ul>
+
+						<a href="/notes/">浏览全部手记</a>
+					</section>
+				)
+			}
+		</div>
+
+		<aside class="home-sidebar" aria-label="首页辅助信息">
+			<section aria-labelledby="home-rin-title">
+				<h2 id="home-rin-title">山雾铃</h2>
+				<p>认识山嵐异造坊的看板娘。</p>
+				<a href="/about/yamagiri-rin/">查看角色资料</a>
+			</section>
+
+			<section aria-labelledby="home-tags-title">
+				<h2 id="home-tags-title">热门标签</h2>
 				{
-					site.sloganLines.map((line) => (
-						<span aria-hidden="true">{line}</span>
-					))
+					popularTags.length > 0 ? (
+						<ul class="home-popular-tags">
+							{popularTags.map(({ slug, name, count }) => (
+								<li>
+									<a href={`/search/?tag=${encodeURIComponent(slug)}`}>
+										<span>{name}</span>
+										<span aria-label={`${count} 项公开内容`}>{count}</span>
+									</a>
+								</li>
+							))}	
+						</ul>
+					) : (
+						<p>暂时没有公开标签。</p>
+					)
 				}
-			</p>
-
-			<nav class="home-actions" aria-label="首页主要入口">
-				<a href="/works/">浏览作品</a>
-				<a href="/notes/">阅读手记</a>
-			</nav>
-		</div>
-
-		<div class="home-hero-visual" aria-hidden="true">
-			<Picture
-				src={heroImage}
-				formats={["avif", "webp"]}
-				widths={[640, 960, 1440, 1920]}
-				sizes="100vw"
-				alt=""
-				loading="eager"
-				fetchpriority="high"
-			/>
-		</div>
-	</section>
-
-	{
-		featuredWorks.length > 0 && (
-			<section aria-labelledby="featured-works-title">
-				<h2 id="featured-works-title">精选作品</h2>
-				<p>探索 Arashi Works 的软件、游戏、模组与实验项目。</p>
-				<WorkGrid>
-					{featuredWorks.map((work) => (
-						<li>
-							<WorkCard
-								title={work.data.title}
-								summary={work.data.summary}
-								cover={work.data.cover}
-								type={work.data.type}
-								status={work.data.status}
-								updatedAt={work.data.updatedAt}
-								tagSlugs={work.data.tags}
-								href={`/works/${work.id}/`}
-								headingLevel="h3"
-							/>
-						</li>
-					))}
-				</WorkGrid>
-
-				<a href="/works/">浏览全部作品</a>
+				<a href="/tags/">查看全部标签</a>
 			</section>
-		)
-	}
 
-	{
-		recentWorks.length > 0 && (
-			<section aria-labelledby="recent-works-title">
-				<h2 id="recent-works-title">最近更新</h2>
-				<p>查看最近更新或正在开发中的项目。</p>
-
-				<WorkGrid>
-					{recentWorks.map((work) => (
-						<li>
-							<WorkCard
-								title={work.data.title}
-								summary={work.data.summary}
-								cover={work.data.cover}
-								type={work.data.type}
-								status={work.data.status}
-								updatedAt={work.data.updatedAt}
-								tagSlugs={work.data.tags}
-								href={`/works/${work.id}/`}
-								headingLevel="h3"
-							/>
-						</li>
-					))}
-				</WorkGrid>
-
-				<a href="/works/">浏览全部作品</a>
+			<section aria-labelledby="home-archive-title">
+				<h2 id="home-archive-title">手记归档</h2>
+				
+				{
+					archiveSummary.length > 0 ? (
+						<ul class="home-archive-summary">
+							{archiveSummary.map(({ year, month, count}) => (
+								<li>
+									<a href={`/notes/archive/#archive-month-${year}-${month}`}>
+										<span>{year} 年 {month} 月</span>
+										<span>{count} 篇</span>
+									</a>
+								</li>
+							))}
+						</ul>
+					) : (
+						<p>暂时没有公开手记。</p>
+					)
+				}
+				<a href="/notes/archive/">查看全部归档</a>
 			</section>
-		)
-	}
-
-	{
-		latestNotes.length > 0 && (
-			<section aria-labelledby="latest-notes-title">
-				<h2 id="latest-notes-title">异造手记</h2>
-				<p>Arashi Works 的开发记录、技术笔记与创作过程。</p>
-
-				<ul class="home-note-list">
-					{latestNotes.map((note) => (
-						<li>
-							<NoteCard
-								title={note.data.title}
-								summary={note.data.summary}
-								category={note.data.category}
-								publishedAt={note.data.publishedAt}
-								updatedAt={note.data.updatedAt}
-								href={`/notes/${note.id}/`}
-								tagSlugs={note.data.tags}
-								readingMinutes={estimateReadingMinutes(
-									note.body ?? "",
-								)}
-								headingLevel="h3"
-							/>
-						</li>
-					))}
-				</ul>
-
-				<a href="/notes/">浏览全部手记</a>
-			</section>
-		)
-	}
+		</aside>
+	</div>
 
 	<section aria-labelledby="about-studio-title">
 		<h2 id="about-studio-title">关于异造坊</h2>
@@ -173,12 +268,53 @@ const latestNotes = notes.slice(0, 3);
 </BaseLayout>
 
 <style>
+	.home-layout,
+	.home-main,
+	.home-sidebar {
+		display: grid;
+	}
+
+	.home-layout {
+		gap: var(--space-section);
+	}
+
+	.home-main,
+	.home-sidebar {
+		align-content: start;
+		gap: var(--space-section);
+	}
+
+	.home-sidebar > section {
+		padding: 1rem;
+		border: 1px solid var(--color-border);
+		border-radius: 0.75rem;
+		background: var(--color-surface-raised);
+		box-shadow: 0 0.5rem 1.25rem var(--color-border);
+	}
+
+	.home-popular-tags,
+	.home-archive-summary {
+		display: grid;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.home-popular-tags a,
+	.home-archive-summary a {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
 	.home-hero {
 		position: relative;
 		isolation: isolate;
 		width: min(100%, 125rem);
+		max-height: 42rem;
 		margin-inline: auto;
-		aspect-ratio: 10 / 3;
+		aspect-ratio: 2 / 1;
 		overflow: hidden;
 		border-radius: 1.5rem;
 	}
@@ -240,6 +376,18 @@ const latestNotes = notes.slice(0, 3);
 		content: "，";
 	}
 
+	@media (min-width: 64rem) {
+		.home-layout {
+			grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+			align-items: start;
+		}
+
+		.home-sidebar {
+			position: sticky;
+			inset-block-start: var(--space-page);
+		}
+	}
+
 	@media (max-width: 50rem) {
 		.home-hero-content {
 			width: min(100%, 28rem);
@@ -267,7 +415,7 @@ const latestNotes = notes.slice(0, 3);
 		}
 	}
 
-	@media (max-width: 62.5rem) {
+	@media (max-width: 63.99rem) {
 		.home-hero {
 			aspect-ratio: 21 / 9;
 		}
