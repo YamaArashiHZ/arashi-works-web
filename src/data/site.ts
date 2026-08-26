@@ -7,4 +7,5 @@ export const site = {
         '记录灵感，分享热爱',
         '探索有趣的世界',
     ],
+    siteUrl: 'https://www.arashiworks.com',
 } as const;
