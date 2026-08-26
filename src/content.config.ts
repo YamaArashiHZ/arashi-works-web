@@ -21,7 +21,7 @@ const works = defineCollection({
     schema: ({ image }) => z.object({
         title: z.string(),
         summary: z.string(),
-        type: z.enum(['software', 'game', 'mod', 'experiment']),
+        type: z.enum(['software', 'game', 'mod', 'plugin', 'experiment']),
         status: z.enum([
             'in-development',
             'released',

@@ -2,6 +2,7 @@ export const workTypeLabels = {
     software: '软件',
     game: '游戏',
     mod: '模组',
+    plugin: '插件',
     experiment: '实验',
 } as const;
 

@@ -4,7 +4,7 @@ summary: 基于火山方舟 Doubao Seedream 5.0 Pro 的 AstrBot 群聊文生图/
 type: software
 status: maintained
 draft: false
-featured: false
+featured: true
 publishedAt: "2026-08-01T12:00:00+08:00"
 updatedAt: "2026-08-02T12:00:00+08:00"
 tags:
