@@ -41,6 +41,8 @@ h3 {
 }
 
 main {
+    width: min(100%, var(--width-page));
+    margin-inline: auto;
     padding: var(--space-page);
 }
 
