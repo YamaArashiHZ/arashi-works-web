@@ -24,7 +24,9 @@
     --hero-overlay-rgb: 255 250 252;
     --color-surface-raised: #fffafc;
     --color-border: rgb(87 91 102 / 20%);
-    --color-shadow: rgb(89 91 102 / 18%);
+    --color-border-strong: rgb(87 91 102 / 45%);
+    --color-shadow: rgb(87 91 102 / 18%);
+    --color-shadow-strong: rgb(87 91 102 / 36%);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,7 +37,9 @@
         --hero-overlay-rgb: 22 23 26;
         --color-surface-raised: #24262b;
         --color-border: rgb(243 244 246 / 18%);
+        --color-border-strong: rgb(243 244 246 / 45%);
         --color-shadow: rgb(0 0 0 / 40%);
+        --color-shadow-strong: rgb(0 0 0 / 70%);
     }
 }
 
@@ -50,5 +54,7 @@
     --hero-overlay-rgb: 22 23 26;
     --color-surface-raised: #24262b;
     --color-border: rgb(243 244 246 / 18%);
+    --color-border-strong: rgb(243 244 246 / 45%);
     --color-shadow: rgb(0 0 0 / 40%);
+    --color-shadow-strong: rgb(0 0 0 / 70%);
 }
