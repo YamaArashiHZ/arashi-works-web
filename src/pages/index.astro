@@ -14,7 +14,7 @@ import { countContentByTag } from "../lib/tags";
 import { getYearMonth } from "../lib/dates";
 
 const works = await getPublishedWorks();
-const featuredWorks = works.filter((work) => work.data.featured);
+const featuredWorks = works.filter((work) => work.data.featured).slice(0, 3);
 const notes = await getPublishedNotes();
 
 const recentWorks = [...works]
@@ -105,23 +105,26 @@ const archiveSummary = Array.from(
 					<section aria-labelledby="featured-works-title">
 						<h2 id="featured-works-title">精选作品</h2>
 						<p>探索 Arashi Works 的软件、游戏、模组与实验项目。</p>
-						<WorkGrid>
-							{featuredWorks.map((work) => (
-								<li>
-									<WorkCard
-										title={work.data.title}
-										summary={work.data.summary}
-										cover={work.data.cover}
-										type={work.data.type}
-										status={work.data.status}
-										updatedAt={work.data.updatedAt}
-										tagSlugs={work.data.tags}
-										href={`/works/${work.id}/`}
-										headingLevel="h3"
-									/>
-								</li>
-							))}
-						</WorkGrid>
+						<div class="home-work-grid">
+							<WorkGrid>
+								{featuredWorks.map((work) => (
+									<li>
+										<WorkCard
+											title={work.data.title}
+											summary={work.data.summary}
+											cover={work.data.cover}
+											type={work.data.type}
+											status={work.data.status}
+											updatedAt={work.data.updatedAt}
+											tagSlugs={work.data.tags}
+											href={`/works/${work.id}/`}
+											headingLevel="h3"
+											variant="home"
+										/>
+									</li>
+								))}
+							</WorkGrid>
+						</div>
 
 						<a href="/works/">浏览全部作品</a>
 					</section>
@@ -134,23 +137,26 @@ const archiveSummary = Array.from(
 						<h2 id="recent-works-title">最近更新</h2>
 						<p>查看最近更新或正在开发中的项目。</p>
 
-						<WorkGrid>
-							{recentWorks.map((work) => (
-								<li>
-									<WorkCard
-										title={work.data.title}
-										summary={work.data.summary}
-										cover={work.data.cover}
-										type={work.data.type}
-										status={work.data.status}
-										updatedAt={work.data.updatedAt}
-										tagSlugs={work.data.tags}
-										href={`/works/${work.id}/`}
-										headingLevel="h3"
-									/>
-								</li>
-							))}
-						</WorkGrid>
+						<div class="home-work-grid">
+							<WorkGrid>
+								{recentWorks.map((work) => (
+									<li>
+										<WorkCard
+											title={work.data.title}
+											summary={work.data.summary}
+											cover={work.data.cover}
+											type={work.data.type}
+											status={work.data.status}
+											updatedAt={work.data.updatedAt}
+											tagSlugs={work.data.tags}
+											href={`/works/${work.id}/`}
+											headingLevel="h3"
+											variant="home"
+										/>
+									</li>
+								))}
+							</WorkGrid>
+						</div>
 
 						<a href="/works/">浏览全部作品</a>
 					</section>
@@ -502,6 +508,17 @@ const archiveSummary = Array.from(
 		.home-actions {
 			font-size: clamp(0.875rem, calc(0.57rem + 1.54vw), 1rem);
 			line-height: 1.35;
+		}
+	}
+
+	.home-work-grid :global(.work-grid) {
+		grid-template-columns: 1fr;
+	}
+
+	@media (min-width: 90rem) {
+		.home-work-grid :global(.work-grid) {
+			grid-template-columns: repeat(3, minmax(0, 30rem));
+			justify-content: center;
 		}
 	}
 

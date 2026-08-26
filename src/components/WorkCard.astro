@@ -20,6 +20,7 @@ interface Props {
     tagSlugs: TagSlug[];
     href: string;
     headingLevel?: "h2" | "h3";
+    variant?: "default" | "home";
 }
 
 const {
@@ -32,39 +33,88 @@ const {
     tagSlugs,
     href,
     headingLevel = "h2",
+    variant = "default",
 } = Astro.props;
 
 const Heading = headingLevel;
 ---
 
-<article>
-    {cover && <Image class="work-cover" src={cover} alt="" width={600} />}
-    <p class="work-meta">
-        <span>{workTypeLabels[type]}</span>
-        <span>{workStatusLabels[status]}</span>
-    </p>
-    <Heading><a href={href}>{title}</a></Heading>
-    <p>{summary}</p>
-    <ul class="work-tags" aria-label="作品标签">
-        {tagSlugs.map((tagSlug) => <li>{tags[tagSlug].name}</li>)}
-    </ul>
+<article
+    class:list={[
+        "work-card",
+        { "work-card-home": variant === "home" },
+    ]}
+>
     {
-        updatedAt && (
-            <p>
-                更新于{" "}
-                <time datetime={updatedAt.toISOString()}>
-                    {formatDateTime(updatedAt)}
-                </time>
-            </p>
+        cover && (
+            <div class="work-cover-frame">
+                <Image
+                    class="work-cover"
+                    src={cover}
+                    alt=""
+                    width={600}
+                />
+            </div>
         )
     }
+    <div class="work-card-content">
+        <p class="work-meta">
+            <span>{workTypeLabels[type]}</span>
+            <span>{workStatusLabels[status]}</span>
+        </p>
+        <Heading><a href={href}>{title}</a></Heading>
+        <p class="work-summary">{summary}</p>
+        <ul class="work-tags" aria-label="作品标签">
+            {tagSlugs.map((tagSlug) => <li>{tags[tagSlug].name}</li>)}
+        </ul>
+        {
+            updatedAt && (
+                <p class="work-update">
+                    更新于{" "}
+                    <time datetime={updatedAt.toISOString()}>
+                        {formatDateTime(updatedAt)}
+                    </time>
+                </p>
+            )
+        }
+    </div>
 </article>
 
 <style>
+    .work-card {
+        height: 100%;
+        overflow: hidden;
+        border: 1px solid var(--color-border);
+        border-radius: 0.75rem;
+        background: var(--color-surface-raised);
+        box-shadow: 0 0.5rem 1.25rem var(--color-shadow);
+        container-type: inline-size;
+    }
+
+    .work-card > * {
+        margin-block: 0;
+    }
+
+    .work-card-content {
+        display: grid;
+        gap: var(--space-flow);
+        padding: 1rem;
+    }
+
+    .work-card-content > * {
+        margin-block: 0;
+    }
+
+    .work-cover-frame {
+        overflow: hidden;
+        aspect-ratio: 16 / 9;
+    }
+
     .work-cover {
         display: block;
         width: 100%;
-        height: auto;
+        height: 100%;
+        object-fit: cover;
     }
     .work-meta {
         display: flex;
@@ -79,5 +129,44 @@ const Heading = headingLevel;
         margin: 0;
         padding: 0;
         list-style: none;
+    }
+
+    .work-card-home .work-summary {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+    }
+
+    .work-card-home .work-card-content {
+        gap: 0.375rem;
+        padding: 0.75rem;
+    }
+
+    .work-card-home .work-meta,
+    .work-card-home .work-tags,
+    .work-card-home .work-update {
+        line-height: 1.35;
+    }
+
+    .work-meta,
+    .work-tags,
+    .work-update {
+        font-size: var(--font-size-small);
+    }
+
+    @container (min-width: 32rem) {
+        .work-card-home .work-summary {
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+        }
+    }
+
+    @container (min-width: 48rem) {
+        .work-card-home .work-summary {
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+        }
     }
 </style>
