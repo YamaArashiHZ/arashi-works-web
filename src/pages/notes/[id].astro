@@ -7,8 +7,7 @@ import { formatDateTime } from "../../lib/dates";
 import { tags } from "../../data/tags";
 import { estimateReadingMinutes } from "../../lib/reading-time";
 
-type PublishedNote =
-    Awaited<ReturnType<typeof getPublishedNotes>>[number];
+type PublishedNote = Awaited<ReturnType<typeof getPublishedNotes>>[number];
 
 interface Props {
     note: PublishedNote;
@@ -25,84 +24,92 @@ export async function getStaticPaths() {
 
 const { note } = Astro.props;
 const { Content } = await render(note);
-const readingMinutes = estimateReadingMinutes(note.body ?? '');
-const relatedWork = note.data.work
-    ? await getEntry(note.data.work)
-    : undefined;
+const readingMinutes = estimateReadingMinutes(note.body ?? "");
+const relatedWork = note.data.work ? await getEntry(note.data.work) : undefined;
 ---
 
 <BaseLayout
     title={`${note.data.title} | Arashi Works`}
     description={note.data.description ?? note.data.summary}
 >
-    <p><a href="/notes/">返回异造手记</a></p>
+    <div class="reading-layout">
+        <p><a href="/notes/">返回异造手记</a></p>
 
-    <article
-        data-pagefind-body
-        data-pagefind-filter="type:note"
-        data-pagefind-meta="type:note"
-    >
-        <header>
-            <p
-                data-category={note.data.category}
-                data-pagefind-filter="category[data-category]"
-                data-pagefind-meta="category[data-category]"
-            >
-                {noteCategories[note.data.category].name}
-            </p>
-            <ul
-                class="note-tags"
-                aria-label="手记标签"
-                data-tags={JSON.stringify(note.data.tags)}
-                data-pagefind-meta="tags[data-tags]"
-            >
-                {note.data.tags.map((tagSlug) => (
-                    <li
-                        data-tag={tagSlug}
-                        data-pagefind-filter="tag[data-tag]"
-                    >
-                        {tags[tagSlug].name}
-                    </li>
-                ))}
-            </ul>
-            <h1 data-pagefind-meta="title">
-                {note.data.title}
-            </h1>
-            <p data-pagefind-meta="summary">
-                {note.data.summary}
-            </p>
-            <p class="note-meta" data-pagefind-ignore>
-                <span>
-                    发布于
-                    <time
-                        datetime={note.data.publishedAt.toISOString()}
-                        data-pagefind-meta="publishedAt[datetime]"
-                    >
-                        {formatDateTime(note.data.publishedAt)}
-                    </time>
-                </span>
-                {note.data.updatedAt && (
+        <article
+            data-pagefind-body
+            data-pagefind-filter="type:note"
+            data-pagefind-meta="type:note"
+        >
+            <header>
+                <p
+                    data-category={note.data.category}
+                    data-pagefind-filter="category[data-category]"
+                    data-pagefind-meta="category[data-category]"
+                >
+                    {noteCategories[note.data.category].name}
+                </p>
+                <ul
+                    class="note-tags"
+                    aria-label="手记标签"
+                    data-tags={JSON.stringify(note.data.tags)}
+                    data-pagefind-meta="tags[data-tags]"
+                >
+                    {
+                        note.data.tags.map((tagSlug) => (
+                            <li
+                                data-tag={tagSlug}
+                                data-pagefind-filter="tag[data-tag]"
+                            >
+                                {tags[tagSlug].name}
+                            </li>
+                        ))
+                    }
+                </ul>
+                <h1 data-pagefind-meta="title">
+                    {note.data.title}
+                </h1>
+                <p data-pagefind-meta="summary">
+                    {note.data.summary}
+                </p>
+                <p class="note-meta" data-pagefind-ignore>
                     <span>
-                        更新于{' '}
-                        <time datetime={note.data.updatedAt.toISOString()}>
-                            {formatDateTime(note.data.updatedAt)}
+                        发布于
+                        <time
+                            datetime={note.data.publishedAt.toISOString()}
+                            data-pagefind-meta="publishedAt[datetime]"
+                        >
+                            {formatDateTime(note.data.publishedAt)}
                         </time>
                     </span>
-                )}
-                <span>预计阅读 {readingMinutes} 分钟</span>
-            </p>
-            {relatedWork && (
-                <p data-pagefind-ignore>
-                    关联作品：
-                    <a href={`/works/${relatedWork.id}/`}>
-                        {relatedWork.data.title}
-                    </a>
+                    {
+                        note.data.updatedAt && (
+                            <span>
+                                更新于{" "}
+                                <time
+                                    datetime={note.data.updatedAt.toISOString()}
+                                >
+                                    {formatDateTime(note.data.updatedAt)}
+                                </time>
+                            </span>
+                        )
+                    }
+                    <span>预计阅读 {readingMinutes} 分钟</span>
                 </p>
-            )}
-        </header>
+                {
+                    relatedWork && (
+                        <p data-pagefind-ignore>
+                            关联作品：
+                            <a href={`/works/${relatedWork.id}/`}>
+                                {relatedWork.data.title}
+                            </a>
+                        </p>
+                    )
+                }
+            </header>
 
-        <Content />
-    </article>
+            <Content />
+        </article>
+    </div>
 </BaseLayout>
 
 <style>

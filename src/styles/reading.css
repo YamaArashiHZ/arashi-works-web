@@ -1,0 +1,62 @@
+.reading-layout {
+    width: min(100%, var(--width-reading));
+    margin-inline: auto;
+}
+
+.reading-layout > * {
+    margin-block: 0;
+}
+
+.reading-layout > * + * {
+    margin-block-start: var(--space-section);
+}
+
+.reading-layout table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    scrollbar-gutter: stable;
+}
+
+.reading-layout th,
+.reading-layout td {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    text-align: start;
+    vertical-align: top;
+}
+
+.reading-layout th {
+    background: var(--color-surface-raised);
+}
+
+.reading-layout pre {
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background: var(--color-surface-raised);
+    line-height: 1.5;
+    tab-size: 4;
+}
+
+.reading-layout code {
+    font-family:
+        "Cascadia Code",
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+}
+
+.reading-layout :not(pre) > code {
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    background: var(--color-surface-raised);
+    overflow-wrap: anywhere;
+}
+
+.reading-layout a {
+    overflow-wrap: anywhere;
+}
