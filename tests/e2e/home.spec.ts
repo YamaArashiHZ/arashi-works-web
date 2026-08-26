@@ -84,3 +84,25 @@ test('首页辅助侧栏提供角色、标签和归档入口', async ({ page }) 
         }),
     ).toHaveAttribute('href', '/notes/archive/');
 });
+
+test('首页作品区各展示最多六张公开作品', async ({ page }) => {
+    await page.goto('/');
+
+    const featuredWorks = page.locator(
+        '.home-featured-works .work-card-home',
+    );
+    const recentWorks = page.locator(
+        '.home-recent-works .work-card-home',
+    );
+
+    await expect(featuredWorks).toHaveCount(6);
+    await expect(recentWorks).toHaveCount(6);
+
+    await expect(
+        page.locator('.home-featured-works'),
+    ).not.toContainText('Schema Test');
+
+    await expect(
+        page.locator('.home-recent-works'),
+    ).not.toContainText('Schema Test');
+});

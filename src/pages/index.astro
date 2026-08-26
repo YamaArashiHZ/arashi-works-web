@@ -14,7 +14,7 @@ import { countContentByTag } from "../lib/tags";
 import { getYearMonth } from "../lib/dates";
 
 const works = await getPublishedWorks();
-const featuredWorks = works.filter((work) => work.data.featured).slice(0, 3);
+const featuredWorks = works.filter((work) => work.data.featured).slice(0, 6);
 const notes = await getPublishedNotes();
 
 const recentWorks = [...works]
@@ -24,7 +24,7 @@ const recentWorks = [...works]
 
 		return bDate.getTime() - aDate.getTime();
 	})
-	.slice(0, 3);
+	.slice(0, 6);
 
 const latestNotes = notes.slice(0, 3);
 
@@ -102,7 +102,10 @@ const archiveSummary = Array.from(
 
 			{
 				featuredWorks.length > 0 && (
-					<section aria-labelledby="featured-works-title">
+					<section
+						class="home-featured-works"
+						aria-labelledby="featured-works-title"
+					>
 						<h2 id="featured-works-title">精选作品</h2>
 						<p>探索 Arashi Works 的软件、游戏、模组与实验项目。</p>
 						<div class="home-work-grid">
@@ -133,7 +136,10 @@ const archiveSummary = Array.from(
 
 			{
 				recentWorks.length > 0 && (
-					<section aria-labelledby="recent-works-title">
+					<section
+						class="home-recent-works"
+						aria-labelledby="recent-works-title"
+					>
 						<h2 id="recent-works-title">最近更新</h2>
 						<p>查看最近更新或正在开发中的项目。</p>
 
@@ -513,10 +519,22 @@ const archiveSummary = Array.from(
 		grid-template-columns: 1fr;
 	}
 
-	@media (min-width: 90rem) {
+	@media (min-width: 48rem) {
 		.home-work-grid :global(.work-grid) {
-			grid-template-columns: repeat(3, minmax(0, 30rem));
+			grid-template-columns: repeat(
+				2,
+				minmax(0, 30rem)
+			);
 			justify-content: center;
+		}
+	}
+
+	@media (min-width: 75rem) {
+		.home-work-grid :global(.work-grid) {
+			grid-template-columns: repeat(
+				3,
+				minmax(0, 30rem)
+			);
 		}
 	}
 
