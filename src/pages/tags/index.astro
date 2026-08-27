@@ -13,7 +13,7 @@ const tagEntries = (Object.keys(tags) as TagSlug[]).map((slug) => ({
     slug,
     tag: tags[slug],
     count: countContentByTag(slug, [works, notes]),
-}));
+})).filter(({ count }) => count > 0);
 ---
 
 <BaseLayout
