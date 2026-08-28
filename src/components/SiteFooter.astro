@@ -10,6 +10,7 @@ const currentYear = new Date().getFullYear();
     </p>
 
     <nav aria-label="页脚导航">
+        <a href="/rss.xml">RSS 订阅</a>
         <a href="/privacy/">隐私说明</a>
     </nav>
 </footer>
@@ -26,5 +27,11 @@ const currentYear = new Date().getFullYear();
 
     .site-footer p {
         margin: 0;
+    }
+
+    .site-footer nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
 </style>
