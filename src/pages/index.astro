@@ -106,7 +106,11 @@ const archiveSummary = Array.from(
 						class="home-featured-works"
 						aria-labelledby="featured-works-title"
 					>
-						<h2 id="featured-works-title">精选作品</h2>
+						<header class="home-section-header">
+							<h2 id="featured-works-title">精选作品</h2>
+							<a href="/works/">浏览全部作品</a>
+						</header>
+
 						<p>探索 Arashi Works 的软件、游戏、模组与实验项目。</p>
 						<div class="home-work-grid">
 							<WorkGrid>
@@ -128,8 +132,6 @@ const archiveSummary = Array.from(
 								))}
 							</WorkGrid>
 						</div>
-
-						<a href="/works/">浏览全部作品</a>
 					</section>
 				)
 			}
@@ -140,7 +142,11 @@ const archiveSummary = Array.from(
 						class="home-recent-works"
 						aria-labelledby="recent-works-title"
 					>
-						<h2 id="recent-works-title">最近更新</h2>
+						<header class="home-section-header">
+							<h2 id="recent-works-title">最近更新</h2>
+							<a href="/works/">浏览全部作品</a>
+						</header>
+
 						<p>查看最近更新或正在开发中的项目。</p>
 
 						<div class="home-work-grid">
@@ -163,8 +169,6 @@ const archiveSummary = Array.from(
 								))}
 							</WorkGrid>
 						</div>
-
-						<a href="/works/">浏览全部作品</a>
 					</section>
 				)
 			}
@@ -172,7 +176,11 @@ const archiveSummary = Array.from(
 			{
 				latestNotes.length > 0 && (
 					<section aria-labelledby="latest-notes-title">
-						<h2 id="latest-notes-title">异造手记</h2>
+						<header class="home-section-header">
+							<h2 id="latest-notes-title">异造手记</h2>
+							<a href="/notes/">浏览全部手记</a>
+						</header>
+
 						<p>Arashi Works 的开发记录、技术笔记与创作过程。</p>
 
 						<ul class="home-note-list">
@@ -195,8 +203,6 @@ const archiveSummary = Array.from(
 								</li>
 							))}
 						</ul>
-
-						<a href="/notes/">浏览全部手记</a>
 					</section>
 				)
 			}
@@ -437,6 +443,22 @@ const archiveSummary = Array.from(
 		content: "，";
 	}
 
+	.home-section-header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.5rem 1rem;
+	}
+
+	.home-section-header > * {
+		margin-block: 0;
+	}
+
+	.home-section-header a {
+		font-size: var(--font-size-small);
+	}
+
 	@media (min-width: 64rem) {
 		.home-layout {
 			grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
@@ -522,20 +544,14 @@ const archiveSummary = Array.from(
 
 	@media (min-width: 48rem) {
 		.home-work-grid :global(.work-grid) {
-			grid-template-columns: repeat(
-				2,
-				minmax(0, 30rem)
-			);
+			grid-template-columns: repeat(2, minmax(0, 30rem));
 			justify-content: center;
 		}
 	}
 
 	@media (min-width: 75rem) {
 		.home-work-grid :global(.work-grid) {
-			grid-template-columns: repeat(
-				3,
-				minmax(0, 30rem)
-			);
+			grid-template-columns: repeat(3, minmax(0, 30rem));
 		}
 	}
 
