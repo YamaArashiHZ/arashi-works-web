@@ -715,7 +715,7 @@ platforms:
 featured: true
 draft: false
 cover: ./assets/pixbox-cover.webp
-releaseManifestUrl: https://example.com/downloads/pixbox/stable.json
+releaseManifestUrl: https://www.arashiworks.com/downloads/pixbox/stable.json
 ---
 ```
 
@@ -943,32 +943,32 @@ v1.2.3
 每个支持公开下载或自动更新的作品拥有固定清单地址：
 
 ```text
-https://example.com/downloads/[product-id]/stable.json
+https://www.arashiworks.com/downloads/[product-id]/stable.json
 ```
 
 例如：
 
 ```text
-https://example.com/downloads/pixbox/stable.json
+https://www.arashiworks.com/downloads/pixbox/stable.json
 ```
 
 客户端始终请求固定地址，无需预先知道最新版本。
 
-`example.com` 是占位域名，正式域名确定后再统一替换。
+正式规范站点域名为 `www.arashiworks.com`。根域 `arashiworks.com` 在正式部署时通过永久重定向指向规范站点地址。
 
 ### 9.4 版本化资产地址
 
 下载资产必须使用包含版本号的不可变地址：
 
 ```text
-https://example.com/downloads/[product-id]/[filename]
+https://www.arashiworks.com/downloads/[product-id]/[filename]
 ```
 
 例如：
 
 ```text
-https://example.com/downloads/pixbox/pixbox-1.2.3-windows-x64-setup.exe
-https://example.com/downloads/pixbox/pixbox-1.2.3-windows-x64-portable.zip
+https://www.arashiworks.com/downloads/pixbox/pixbox-1.2.3-windows-x64-setup.exe
+https://www.arashiworks.com/downloads/pixbox/pixbox-1.2.3-windows-x64-portable.zip
 ```
 
 发布后不得覆盖同一版本路径中的文件。
@@ -989,7 +989,7 @@ https://example.com/downloads/pixbox/pixbox-1.2.3-windows-x64-portable.zip
   "version": "1.2.3",
   "releasedAt": "2026-08-10T12:00:00Z",
   "summary": "改进缩略图缓存并修复若干问题。",
-  "releaseNotesUrl": "https://example.com/works/pixbox/#version-1-2-3",
+  "releaseNotesUrl": "https://www.arashiworks.com/works/pixbox/#version-1-2-3",
   "assets": [
     {
       "id": "windows-x64-setup",
@@ -997,7 +997,7 @@ https://example.com/downloads/pixbox/pixbox-1.2.3-windows-x64-portable.zip
       "architecture": "x64",
       "packageType": "installer",
       "filename": "pixbox-1.2.3-windows-x64-setup.exe",
-      "url": "https://example.com/downloads/pixbox/pixbox-1.2.3-windows-x64-setup.exe",
+      "url": "https://www.arashiworks.com/downloads/pixbox/pixbox-1.2.3-windows-x64-setup.exe",
       "fallbackUrl": "https://github.com/example/pixbox/releases/download/v1.2.3/pixbox-1.2.3-windows-x64-setup.exe",
       "size": 52428800,
       "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
@@ -2247,7 +2247,7 @@ CORS、`Origin`、`Referer`、CSRF 防护和验证码可以提高滥用成本，
 
 ## 15. 腾讯云部署规划
 
-本章只定义未来部署目标，不表示当前创建、购买或配置任何云资源。
+本章定义正式部署目标。当前已购买轻量应用服务器作为 ICP 备案资源，并计划在备案通过后用于 Waline 与 SQLite；网站 COS、下载 COS、EdgeOne、评论服务和生产 CI/CD 尚未创建或配置。已创建备案资源不表示网站已经正式上线。
 
 ### 15.1 总体架构
 
@@ -2255,19 +2255,19 @@ CORS、`Origin`、`Referer`、CSRF 防护和验证码可以提高滥用成本，
 GitHub 网站仓库
     ↓ CI/CD
 网站 COS ─┐
-          ├→ EdgeOne → example.com
+          ├→ EdgeOne → www.arashiworks.com
 下载 COS ─┘              └─ /downloads/* 按规则回源到下载 COS
     ↑ 发布 CI
 各作品仓库
 
 轻量应用服务器
-    └── Waline + SQLite → comments.example.com
+    └── Waline + SQLite → comments.arashiworks.com
 
-未来 chat.example.com
+未来 chat.arashiworks.com
     └── 独立聊天网关 → DeepSeek API
 ```
 
-正式域名确定后统一替换 `example.com`。未来聊天网关与 Waline 逻辑隔离，不能因为节省配置而共用同一进程、密钥或数据库。
+正式站点使用 `www.arashiworks.com`，根域 `arashiworks.com` 永久重定向到规范地址。Waline 计划使用 `comments.arashiworks.com`；未来聊天网关计划使用 `chat.arashiworks.com`。未来聊天网关与 Waline 逻辑隔离，不能因为节省配置而共用同一进程、密钥或数据库。
 
 默认源站组：网站 COS
 /downloads/*：通过规则引擎“修改源站”切换到下载 COS
@@ -2547,9 +2547,9 @@ Waline 备份建议保留最近 7 个每日、4 个每周和 6 个每月版本�
 
 | 信息 | 用途 | 状态 |
 |---|---|---|
-| 实际域名 | 替换全部 `example.com` | 已注册并实名认证：`arashiworks.com`；规范站点地址为 `https://www.arashiworks.com` |
+| 实际域名 | 确定站点规范地址与服务子域规划 | 已注册并实名认证：`arashiworks.com`；规范站点地址为 `https://www.arashiworks.com` |
 | ICP 查询结果 | 决定大陆资源启用顺序 | 已提交管局审核，尚未取得备案号 |
-| 腾讯云账号与实名认证 | 创建正式资源 | 已完成实名认证；备案资源已配置 |
+| 腾讯云账号与实名认证 | 创建正式资源 | 已完成实名认证；轻量应用服务器已作为备案资源提交，生产 COS 与 EdgeOne 尚未配置 |
 | GitHub 网站仓库地址 | 建立 CI/CD | 已提供：`https://github.com/YamaArashiHZ/arashi-works-web` |
 | 首批作品及仓库地址 | 验证作品模型和发布流程 | 已提供并接入内容集合 |
 | 首批异造手记主题 | 验证文章结构与搜索 | 已提供并接入内容集合 |
