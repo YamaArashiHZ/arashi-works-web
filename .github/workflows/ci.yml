@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Test, check and build
+    name: Test, check, build and E2E
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -49,3 +49,14 @@ jobs:
 
       - name: Run end-to-end tests
         run: npm run test:e2e
+
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
