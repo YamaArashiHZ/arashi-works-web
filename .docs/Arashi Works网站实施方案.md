@@ -2247,7 +2247,9 @@ CORS、`Origin`、`Referer`、CSRF 防护和验证码可以提高滥用成本，
 
 ## 15. 腾讯云部署规划
 
-本章定义正式部署目标。当前已购买轻量应用服务器作为 ICP 备案资源，并计划在备案通过后用于 Waline 与 SQLite；网站 COS、下载 COS、EdgeOne、评论服务和生产 CI/CD 尚未创建或配置。已创建备案资源不表示网站已经正式上线。
+本章定义正式部署目标。当前已购买轻量应用服务器作为 ICP 备案资源，并计划在备案通过后用于 Waline 与 SQLite；生产网站 COS、下载 COS、EdgeOne 加速配置、评论服务和部署型 CI/CD 尚未创建或配置。已创建备案资源和临时预览不表示网站已经正式上线。
+
+当前已使用 EdgeOne Pages 平台临时域名完成技术预览，验证了 GitHub 仓库导入、Linux 云端构建、Astro 静态输出、Pagefind、HTTPS、404 与深层路由访问。该预览不绑定正式域名，不代表网站已经正式上线，也不替代后续 COS + EdgeOne 生产架构验收。
 
 ### 15.1 总体架构
 
@@ -2315,7 +2317,7 @@ GitHub 网站仓库
 
 ### 16.1 网站 CI
 
-Pull Request 和 `main` 推送均执行：
+网站 CI 的目标流程如下：
 
 ```text
 安装锁定依赖
@@ -2336,6 +2338,17 @@ Pagefind 索引
 ```
 
 Pull Request 不接触生产 COS、EdgeOne 或服务器凭证。
+
+当前 GitHub Actions 已在 `main` 推送和 Pull Request 中执行：
+
+- `npm ci`；
+- Vitest 单元测试；
+- Astro 与 TypeScript 检查；
+- Astro 与 Pagefind 完整构建；
+- Playwright Chromium 端到端测试；
+- 测试失败时短期保存 Playwright 报告与 Trace。
+
+EdgeOne Pages 已连接 GitHub 仓库用于临时技术预览。正式生产部署仍等待 ICP 备案通过后单独配置，不在当前 CI 中写入腾讯云生产凭证。
 
 ### 16.2 网站部署
 
@@ -2527,10 +2540,10 @@ Waline 备份建议保留最近 7 个每日、4 个每周和 6 个每月版本�
 
 ### 20.4 阶段 D：评论、发布与部署
 
-1. 查询并处理备案前置条件。
+1. 完成域名注册、实名认证与备案前置资源配置；当前 ICP 已提交管局审核。
 2. 部署并加固 Waline，建立备份恢复流程。
 3. 为首个作品接通发布清单和版本化下载。
-4. 建立网站 CI/CD、COS、EdgeOne、安全头和监控。
+4. 在现有基础 CI 上建立正式部署流程，并配置 COS、EdgeOne、安全头和监控。
 5. 完成验收后正式上线并处理后续合规事项。
 
 ### 20.5 阶段 E：未来聊天专项
@@ -2550,6 +2563,7 @@ Waline 备份建议保留最近 7 个每日、4 个每周和 6 个每月版本�
 | 实际域名 | 确定站点规范地址与服务子域规划 | 已注册并实名认证：`arashiworks.com`；规范站点地址为 `https://www.arashiworks.com` |
 | ICP 查询结果 | 决定大陆资源启用顺序 | 已提交管局审核，尚未取得备案号 |
 | 腾讯云账号与实名认证 | 创建正式资源 | 已完成实名认证；轻量应用服务器已作为备案资源提交，生产 COS 与 EdgeOne 尚未配置 |
+| EdgeOne Pages 技术预览 | 验证公网构建与静态托管 | 已通过平台临时域名验证，未绑定正式域名 |
 | GitHub 网站仓库地址 | 建立 CI/CD | 已提供：`https://github.com/YamaArashiHZ/arashi-works-web` |
 | 首批作品及仓库地址 | 验证作品模型和发布流程 | 已提供并接入内容集合 |
 | 首批异造手记主题 | 验证文章结构与搜索 | 已提供并接入内容集合 |
