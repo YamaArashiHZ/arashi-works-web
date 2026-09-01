@@ -1,5 +1,7 @@
 ---
+import { Image } from "astro:assets";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import rinProfileImage from "../../../assets/images/home/yamagiri-rin-profile.png";
 ---
 
 <BaseLayout
@@ -71,5 +73,82 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
                 <li>开心、警觉、害羞或者惊讶时，耳朵和尾巴都会跟着变化。</li>
             </ul>
         </section>
+
+        <section
+            class="chat-preperation"
+            aria-labelledby="chat-preperation-title"
+            data-pagefind-ignore
+        >
+            <Image
+                class="chat-preperation-avatar"
+                src={rinProfileImage}
+                alt="山雾铃头像"
+                width={160}
+                height={160}
+            />
+
+            <div class="chat-preperation-content">
+                <p class="chat-preparation-status">筹备中</p>
+                <h2 id="chat-preperation-title">
+                    异造坊导览对话
+                </h2>
+                <p>
+                    异造坊导览对话正在开发中。当前不会发送消息或连接任何模型服务。
+                </p>
+                <p>
+                    正式开放前将另行完成隐私、安全、内容边界和成本专项评估。
+                </p>
+            </div>
+        </section>
     </article>
 </BaseLayout>
+
+<style>
+    .chat-preperation {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.75rem;
+        background: var(--color-surface-raised);
+        box-shadow: 0 0.5rem 1.25rem var(--color-shadow);
+    }
+
+    .chat-preperation > * {
+        margin-block: 0;
+    }
+
+    .chat-preperation-avatar {
+        display: block;
+        width: clamp(6rem, 15vw, 10rem);
+        height: auto;
+        border: 0.2rem solid var(--color-border);
+        border-radius: 50%;
+        aspect-ratio: 1;
+        object-fit: cover;
+    }
+
+    .chat-preperation-content {
+        display: grid;
+        gap: var(--space-flow);
+    }
+
+    .chat-preperation-content > * {
+        margin-block: 0;
+    }
+
+    .chat-preperation-status {
+        font-size: var(--font-size-small);
+        font-weight: 700;
+    }
+
+    @media (max-width: 32rem) {
+        .chat-preperation {
+            grid-template-columns: 1fr;
+            justify-items: center;
+            text-align: center;
+        }
+    }
+</style>
