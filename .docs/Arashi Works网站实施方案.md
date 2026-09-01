@@ -2281,7 +2281,7 @@ GitHub 网站仓库
 | 网站 COS 桶 | HTML、CSS、JavaScript、图片、字体和搜索索引 | 通过 EdgeOne 公开读取 |
 | 下载 COS 桶 | 发布清单和版本化安装包、游戏构建、ZIP | 通过 EdgeOne 公开读取 |
 | 备份 COS 桶 | Waline 数据库及必要服务备份 | 私有 |
-| 轻量应用服务器 | Waline、SQLite 和 HTTPS 反向代理 | 仅必要服务域名公开 |
+| 轻量应用服务器 | Docker Compose、Waline、宿主机持久化 SQLite 与 Caddy HTTPS 反向代理 | 仅 `comments.arashiworks.com` 对外提供必要服务 |
 | CAM 子账号或角色 | CI 上传、备份和 EdgeOne 刷新 | 按仓库和对象前缀最小授权 |
 
 未来聊天服务的部署形态、规格和数据存储在启用前单独决策，不在首期预购资源。
@@ -2384,6 +2384,16 @@ EdgeOne Pages 已连接 GitHub 仓库用于临时技术预览。正式生产部�
 - 不加载来源不明的统计、字体和第三方脚本。
 
 ### 17.2 Waline
+
+Waline 首期采用以下部署方式：
+
+- 使用 Docker Compose 运行并锁定明确的 Waline 镜像版本，不使用 `latest`。
+- 使用 Caddy 提供 HTTPS 与反向代理，对外服务域名为 `comments.arashiworks.com`。
+- Waline 服务仅监听 Docker 内部网络，不直接将应用端口暴露到公网。
+- SQLite 数据目录挂载到宿主机受控目录，与容器生命周期分离。
+- 所有新评论默认进入审核状态，管理员批准后才公开。
+- 首期暂不配置 SMTP 评论通知，待服务稳定后再单独增加邮件凭证。
+- ICP 备案通过并完成隐私页更新前，不绑定正式评论域名，也不向访客开放评论入口。
 
 - Waline 固定明确版本，不长期使用不可控的 `latest`。
 - 服务只监听回环地址或容器内部网络。
