@@ -2281,7 +2281,7 @@ GitHub 网站仓库
 | 网站 COS 桶 | HTML、CSS、JavaScript、图片、字体和搜索索引 | 通过 EdgeOne 公开读取 |
 | 下载 COS 桶 | 发布清单和版本化安装包、游戏构建、ZIP | 通过 EdgeOne 公开读取 |
 | 备份 COS 桶 | Waline 数据库及必要服务备份 | 私有 |
-| 轻量应用服务器 | Docker Compose、Waline、宿主机持久化 SQLite 与 Caddy HTTPS 反向代理 | 仅 `comments.arashiworks.com` 对外提供必要服务 |
+| 轻量应用服务器 | Docker Compose、Waline、宿主机持久化 SQLite 与宿主机 Caddy 反向代理 | 仅通过 `comments.arashiworks.com` 的 HTTP/HTTPS 必要端口对外提供服务 |
 | CAM 子账号或角色 | CI 上传、备份和 EdgeOne 刷新 | 按仓库和对象前缀最小授权 |
 
 未来聊天服务的部署形态、规格和数据存储在启用前单独决策，不在首期预购资源。
@@ -2387,18 +2387,18 @@ EdgeOne Pages 已连接 GitHub 仓库用于临时技术预览。正式生产部�
 
 Waline 首期采用以下部署方式：
 
-- 使用 Docker Compose 运行并锁定明确的 Waline 镜像版本，不使用 `latest`。
-- 使用 Caddy 提供 HTTPS 与反向代理，对外服务域名为 `comments.arashiworks.com`。
-- Waline 服务仅监听 Docker 内部网络，不直接将应用端口暴露到公网。
-- SQLite 数据目录挂载到宿主机受控目录，与容器生命周期分离。
+- Waline 使用 Docker Compose 运行并锁定明确镜像版本，不使用 `latest`。
+- Caddy 直接安装在 Ubuntu 宿主机，由 systemd 管理，负责 `comments.arashiworks.com` 的 HTTPS 与反向代理。
+- Waline 容器端口仅发布到宿主机回环地址，例如 `127.0.0.1:8360`，不绑定 `0.0.0.0`，公网不能绕过 Caddy 直接访问应用端口。
+- 服务配置位于 `/srv/arashi-waline/`，SQLite 持久化目录与容器生命周期分离。
+- `/srv/arashi-waline/` 不属于 Web 根目录，并由专用系统用户或受限管理员账户管理。
+- 首期允许的网页来源只包含 `https://www.arashiworks.com` 与已确认的 EdgeOne Pages 临时预览域名；不使用通配来源。
 - 所有新评论默认进入审核状态，管理员批准后才公开。
 - 首期暂不配置 SMTP 评论通知，待服务稳定后再单独增加邮件凭证。
+- 初期先在服务器本机建立每日 SQLite 一致性快照与保留策略；服务稳定后再使用 CAM 最小权限同步到私有 COS。
 - ICP 备案通过并完成隐私页更新前，不绑定正式评论域名，也不向访客开放评论入口。
 
-- Waline 固定明确版本，不长期使用不可控的 `latest`。
-- 服务只监听回环地址或容器内部网络。
-- 公网仅开放 HTTPS 和受限管理入口。
-- 新评论默认审核后公开。
+- 服务器安全组仅开放必要的 `80/tcp` 与 `443/tcp`；`80/tcp` 仅用于证书验证和 HTTP 到 HTTPS 跳转，业务访问统一使用 HTTPS。Waline 应用端口不向公网开放。
 - 邮箱不公开展示。
 - 配置安全域名、频率限制、重复内容检查和请求体大小限制。
 - 管理账号使用强密码，JWT Token 使用强随机值。
@@ -2457,7 +2457,7 @@ Waline 首期采用以下部署方式：
 | 软件源代码 | 各作品仓库 |
 | 角色美术无损源文件 | 独立受控存储并另做离线备份 |
 | 版本化下载资产 | COS，重要版本另做归档 |
-| Waline SQLite | 每日一致性备份到私有 COS |
+| Waline SQLite | 初期每日一致性快照保存在服务器受控备份目录；稳定后同步到私有 COS |
 | 云配置 | 部署文档记录，可自动化部分使用脚本或 IaC |
 
 Waline 备份建议保留最近 7 个每日、4 个每周和 6 个每月版本。每月至少执行一次测试恢复，不以“备份任务成功”代替恢复验证。
